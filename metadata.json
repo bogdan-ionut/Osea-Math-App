@@ -1,0 +1,6 @@
+{
+  "name": "Oséa Math",
+  "description": "A fun, interactive math learning app for Osea with gamified mastery-based principles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
