@@ -28,6 +28,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - colecție de recompense deblocată treptat, ca Oséa să revină la propria aventură
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
 - obiecte numărabile generate ca PNG-uri premium: corăbii, cufere, bănuți, tunuri, săbii, hărți, lunete, busole, ancore și lopeți de comoară
+- launcher icon nou, aliniat cu tema de aventură pe mare: corabie, cufăr și monedă
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă
 - după numărare completă, jocul arată vizual `Total sigur` sau `Rămân pe punte`, ca sensul operației să fie concret

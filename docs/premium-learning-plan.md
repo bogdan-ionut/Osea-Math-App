@@ -67,6 +67,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră și lopată.
 - Fiecare obiect a fost generat pe chroma-key și convertit local în PNG transparent, salvat ca `item_*.png` în `app/src/main/res/drawable`.
 - Recompensele din `Colecția lui Oséa` refolosesc aceleași asset-uri premium pentru monedă, hartă, lunetă, busolă, ancoră și cufăr, cu stare vizuală blocată/deblocată.
+- Launcher icon-ul folosește o compoziție locală din corabie, cufăr și monedă, cu fundal oceanic, pentru ca APK-ul instalat să nu mai apară cu icon generic.
 
 ## Verificare Tehnică
 
