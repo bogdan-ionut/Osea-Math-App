@@ -184,6 +184,18 @@ fun answerButtonsUnlocked(state: GameState, countedCount: Int): Boolean {
     return remainingTouchesFor(state, countedCount) == 0
 }
 
+fun remainingOnDeckCountFor(state: GameState): Int {
+    return if (state.operation == MathOperation.Subtraction) {
+        correctAnswerFor(state)
+    } else {
+        visibleObjectCountFor(state)
+    }
+}
+
+fun movedToChestCountFor(state: GameState): Int {
+    return if (state.operation == MathOperation.Subtraction) state.num2 else 0
+}
+
 fun nextGuidedItemId(state: GameState, countedItemIds: Set<String>): String? {
     val orderedIds = buildList {
         repeat(state.num1) { index -> add("left_$index") }
@@ -1407,12 +1419,61 @@ private fun ResultPreviewCard(state: GameState) {
                         lineHeight = 14.sp
                     )
                     Spacer(modifier = Modifier.height(6.dp))
-                    MiniResultObjects(
-                        count = answer,
-                        item = if (state.operation == MathOperation.Subtraction) state.item1 else null
-                    )
+                    if (state.operation == MathOperation.Subtraction) {
+                        SubtractionResultObjects(state = state)
+                    } else {
+                        MiniResultObjects(count = answer, item = null)
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SubtractionResultObjects(state: GameState) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ResultObjectLane(
+            label = "rămân",
+            count = remainingOnDeckCountFor(state),
+            item = state.item1,
+            color = EmeraldGreen,
+            modifier = Modifier.weight(1f)
+        )
+        ResultObjectLane(
+            label = "în cufăr",
+            count = movedToChestCountFor(state),
+            item = state.item1,
+            color = StarGold,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun ResultObjectLane(
+    label: String,
+    count: Int,
+    item: PirateItem,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = color.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.32f))
+    ) {
+        Column(modifier = Modifier.padding(7.dp)) {
+            Text(
+                text = "$count $label",
+                color = color,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            MiniResultObjects(count = count, item = item)
         }
     }
 }

@@ -13,6 +13,17 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun resultObjectCountsMakeSubtractionConcrete() {
+        val addition = GameState(num1 = 2, num2 = 3, operation = MathOperation.Addition)
+        val subtraction = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals(5, remainingOnDeckCountFor(addition))
+        assertEquals(0, movedToChestCountFor(addition))
+        assertEquals(3, remainingOnDeckCountFor(subtraction))
+        assertEquals(2, movedToChestCountFor(subtraction))
+    }
+
+    @Test
     fun skillAccuracyHandlesEmptyAndNormalSignals() {
         assertEquals(100, skillAccuracy(correct = 0, attempts = 0))
         assertEquals(75, skillAccuracy(correct = 3, attempts = 4))

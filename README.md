@@ -30,6 +30,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă
 - după numărare completă, jocul arată vizual `Total sigur` sau `Rămân pe punte`, ca sensul operației să fie concret
+- la scădere, rezultatul separă vizual comorile care rămân pe punte de cele mutate în cufăr
 - feedback haptic discret la atingerea obiectelor și la alegerea răspunsului, ca bucla să se simtă mai tactilă pe Android
 - ghid vizual pentru următorul obiect de atins, cu contur luminos și numărul pasului următor
 - micro-celebrare scurtă după răspuns corect: `Comoară +1`, streak și colecție, fără să rupă ritmul sesiunii

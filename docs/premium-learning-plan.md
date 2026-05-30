@@ -18,6 +18,7 @@
 - Guess Guard pentru părinte: Parent Dash include un scor de eficiență inspirat de semnalul de quality control/waste din PDF, dar formulat blând pentru vârsta lui Oséa.
 - Sprijin pentru vârstă mică: fiecare problemă este concretă, atinsă cu degetul și numărabilă înainte de alegerea răspunsului numeric.
 - Rezultat concret după numărare: aplicația afișează `Total sigur` sau `Rămân pe punte` doar după ce toate obiectele au fost atinse.
+- Scădere concretă: rezultatul separă vizual comorile care rămân pe punte de comorile mutate în cufăr, ca minusul să fie o acțiune fizică.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor, ca Oséa să fie condus prin secvență fără fricțiune.
@@ -39,14 +40,15 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 8. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
 9. După primele niveluri, apar scăderi concrete: comori de pe punte minus comori puse în cufăr.
 10. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
-11. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
-12. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
-13. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-14. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
-15. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-16. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-17. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-18. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
+11. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
+12. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
+13. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
+14. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
+15. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
+16. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
+17. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+18. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+19. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
 
 ## Următoarele Milestone-uri Premium
 
@@ -78,6 +80,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
 - QA tehnic: streak-ul zilnic are test unitar pentru zile consecutive, aceeași zi și pauze între sesiuni.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
+- QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
