@@ -86,6 +86,42 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun guidedCountingOnlyAdvancesWhenTheHighlightedObjectIsTapped() {
+        val empty = emptyMap<String, Int>()
+        val first = nextCountedItemsAfterTap(
+            countedItems = empty,
+            tappedItemId = "right_0",
+            guidedItemId = "left_0"
+        )
+
+        assertEquals(empty, first)
+
+        val countedFirst = nextCountedItemsAfterTap(
+            countedItems = empty,
+            tappedItemId = "left_0",
+            guidedItemId = "left_0"
+        )
+
+        assertEquals(mapOf("left_0" to 1), countedFirst)
+        assertEquals(
+            countedFirst,
+            nextCountedItemsAfterTap(
+                countedItems = countedFirst,
+                tappedItemId = "left_0",
+                guidedItemId = "left_1"
+            )
+        )
+        assertEquals(
+            mapOf("left_0" to 1, "left_1" to 2),
+            nextCountedItemsAfterTap(
+                countedItems = countedFirst,
+                tappedItemId = "left_1",
+                guidedItemId = "left_1"
+            )
+        )
+    }
+
+    @Test
     fun audioAssetsAreBundledForOfflinePlay() {
         val rawDir = File("src/main/res/raw")
         val expectedAudio = listOf(

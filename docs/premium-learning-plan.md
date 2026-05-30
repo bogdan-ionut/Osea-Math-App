@@ -22,7 +22,7 @@
 - Scădere concretă: rezultatul separă vizual comorile care rămân pe punte de comorile mutate în cufăr, ca minusul să fie o acțiune fizică.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
-- Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor, ca Oséa să fie condus prin secvență fără fricțiune.
+- Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
 - Continuitate între sesiuni: aplicația salvează local comorile totale, sesiunile finalizate și recordul de streak.
 - Continuitate între zile: streak-ul zilnic și ultimul raport de sesiune rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
@@ -87,6 +87,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
+- QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.

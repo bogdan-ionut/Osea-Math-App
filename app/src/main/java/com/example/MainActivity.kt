@@ -204,6 +204,18 @@ fun nextGuidedItemId(state: GameState, countedItemIds: Set<String>): String? {
     return orderedIds.firstOrNull { it !in countedItemIds }
 }
 
+fun nextCountedItemsAfterTap(
+    countedItems: Map<String, Int>,
+    tappedItemId: String,
+    guidedItemId: String?
+): Map<String, Int> {
+    return if (guidedItemId != null && tappedItemId == guidedItemId && tappedItemId !in countedItems) {
+        countedItems + (tappedItemId to (countedItems.size + 1))
+    } else {
+        countedItems
+    }
+}
+
 private fun buildCoachNarration(state: GameState, countedCount: Int): String {
     val visibleItems = visibleObjectCountFor(state)
     val answer = correctAnswerFor(state)
@@ -891,14 +903,16 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                         countedItems = countedItems,
                         guidedItemId = nextGuidedItemId(state, countedItems.keys),
                         onItemTapped = { id ->
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            if (countedItems.containsKey(id)) {
-                                countedItems.remove(id)
-                                val reorderedKeys = countedItems.toList().sortedBy { it.second }.map { it.first }
+                            val guidedItemId = nextGuidedItemId(state, countedItems.keys)
+                            val nextCountedItems = nextCountedItemsAfterTap(
+                                countedItems = countedItems.toMap(),
+                                tappedItemId = id,
+                                guidedItemId = guidedItemId
+                            )
+                            if (nextCountedItems != countedItems) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 countedItems.clear()
-                                reorderedKeys.forEachIndexed { index, key -> countedItems[key] = index + 1 }
-                            } else {
-                                countedItems[id] = countedItems.size + 1
+                                countedItems.putAll(nextCountedItems)
                             }
                         }
                     )
@@ -1336,7 +1350,7 @@ private fun ProblemStage(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = if (state.operation == MathOperation.Addition) {
-                    "Atinge obiectele ca să apară ordinea numărării."
+                    "Atinge comoara luminoasă ca să apară ordinea numărării."
                 } else {
                     "Atinge comorile de pe punte și pe cele puse în cufăr."
                 },
@@ -1985,8 +1999,8 @@ private fun CoachPanel(
                         "Gata, ai refăcut numărarea. Alege răspunsul corect."
                     }
                     countedCount < totalItems -> {
-                        val noun = if (remainingTouches == 1) "obiect" else "obiecte"
-                        "Numărate: $countedCount din $totalItems. Comoara luminoasă este numărul $nextCountNumber. Atinge încă $remainingTouches $noun ca să deblochezi răspunsurile."
+                        val noun = if (remainingTouches == 1) "comoară" else "comori"
+                        "Numărate: $countedCount din $totalItems. Comoara luminoasă este numărul $nextCountNumber. Atinge-o ca să continui. Mai ai $remainingTouches $noun."
                     }
                     else -> if (state.operation == MathOperation.Addition) {
                         "Toate sunt numărate. Acum răspunsul e ultimul număr pe care îl vezi."

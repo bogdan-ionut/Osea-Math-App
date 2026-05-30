@@ -35,6 +35,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - la scădere, rezultatul separă vizual comorile care rămân pe punte de cele mutate în cufăr
 - feedback haptic discret la atingerea obiectelor și la alegerea răspunsului, ca bucla să se simtă mai tactilă pe Android
 - ghid vizual pentru următorul obiect de atins, cu contur luminos și numărul pasului următor
+- numărarea avansează doar când este atins obiectul luminat, ca să reducă tapping-ul la întâmplare
 - micro-celebrare scurtă după răspuns corect: `Comoară +1`, streak și colecție, fără să rupă ritmul sesiunii
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale
 - `Parent Dash` cu semnal de potrivire a dificultății, după logica din PDF: peste 95% poate fi prea ușor, sub 70% intră suportul
