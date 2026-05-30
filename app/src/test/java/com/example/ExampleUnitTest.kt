@@ -20,6 +20,16 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun learningEfficiencyCombinesAccuracyRepairsAndWrongStreaks() {
+        assertEquals(100, learningEfficiencyScore(correct = 0, attempts = 0, repairRounds = 0, consecutiveWrong = 0))
+        assertEquals(92, learningEfficiencyScore(correct = 3, attempts = 3, repairRounds = 1, consecutiveWrong = 0))
+        assertEquals(40, learningEfficiencyScore(correct = 3, attempts = 5, repairRounds = 1, consecutiveWrong = 1))
+        assertEquals("Calibrare", learningEfficiencyLabel(score = 100, attempts = 2))
+        assertEquals("Eficient", learningEfficiencyLabel(score = 92, attempts = 3))
+        assertEquals("Risc de ghicit", learningEfficiencyLabel(score = 40, attempts = 5))
+    }
+
+    @Test
     fun dailyStreakContinuesOnlyAcrossConsecutiveDays() {
         assertEquals(1, nextDailyStreak(lastCompletionDay = 0, currentStreak = 0, today = 100))
         assertEquals(4, nextDailyStreak(lastCompletionDay = 99, currentStreak = 3, today = 100))

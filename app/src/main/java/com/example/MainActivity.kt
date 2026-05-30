@@ -245,6 +245,27 @@ fun skillAccuracy(correct: Int, attempts: Int): Int {
     return if (attempts == 0) 100 else (correct * 100 / attempts).coerceIn(0, 100)
 }
 
+fun learningEfficiencyScore(
+    correct: Int,
+    attempts: Int,
+    repairRounds: Int,
+    consecutiveWrong: Int
+): Int {
+    val accuracy = skillAccuracy(correct = correct, attempts = attempts)
+    val repairPenalty = (repairRounds * 8).coerceAtMost(28)
+    val wrongStreakPenalty = (consecutiveWrong * 12).coerceAtMost(24)
+    return (accuracy - repairPenalty - wrongStreakPenalty).coerceIn(0, 100)
+}
+
+fun learningEfficiencyLabel(score: Int, attempts: Int): String {
+    return when {
+        attempts < 3 -> "Calibrare"
+        score >= 85 -> "Eficient"
+        score >= 70 -> "De urmărit"
+        else -> "Risc de ghicit"
+    }
+}
+
 private fun currentLocalDayIndex(): Int {
     val now = System.currentTimeMillis()
     val localOffsetMillis = TimeZone.getDefault().getOffset(now)
@@ -2306,24 +2327,39 @@ private fun ParentInsightStrip(
     onMaxDifficultySelected: (Int) -> Unit
 ) {
     val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal)
-    val focusScore = (100 - state.consecutiveWrong * 18).coerceIn(55, 100)
+    val efficiencyScore = learningEfficiencyScore(
+        correct = state.correctTotal,
+        attempts = state.attemptsTotal,
+        repairRounds = state.repairRounds,
+        consecutiveWrong = state.consecutiveWrong
+    )
+    val efficiencyLabel = learningEfficiencyLabel(score = efficiencyScore, attempts = state.attemptsTotal)
     val hasEnoughSignal = state.attemptsTotal >= 3
     val fitColor = when {
         !hasEnoughSignal -> TextSandy
         accuracy >= 95 && state.difficultyLevel <= 2 -> StarGold
         accuracy < 70 -> RubyRed
+        efficiencyScore < 70 -> StarGold
         else -> EmeraldGreen
+    }
+    val efficiencyColor = when {
+        !hasEnoughSignal -> TextSandy
+        efficiencyScore >= 85 -> EmeraldGreen
+        efficiencyScore >= 70 -> StarGold
+        else -> RubyRed
     }
     val fitLabel = when {
         !hasEnoughSignal -> "Se calibrează"
         accuracy >= 95 && state.difficultyLevel <= 2 -> "Prea ușor curând"
         accuracy < 70 -> "Prea greu"
+        efficiencyScore < 70 -> "Ghicit detectat"
         else -> "Potrivit"
     }
     val parentRecommendation = when {
         !hasEnoughSignal -> "Mai strângem câteva răspunsuri înainte de concluzie."
         accuracy >= 95 && state.difficultyLevel <= 2 -> "Dacă rămâne peste 95%, aplicația ridică treptat nivelul."
         accuracy < 70 -> "Sub 70% intră suportul: întrebări mai mici și numărare ghidată."
+        efficiencyScore < 70 -> "Eficiența a scăzut: păstrăm obiecte ghidate, răspunsuri blocate și reparații scurte."
         else -> "Ritmul e bun: păstrăm mastery și creștem doar după streak-uri."
     }
     var showSessionSettings by remember { mutableStateOf(false) }
@@ -2357,8 +2393,8 @@ private fun ParentInsightStrip(
             ) {
                 ParentMetric("Minute", "${state.sessionSecondsElapsed / 60}/25")
                 ParentMetric("Acuratețe", "$accuracy%")
+                ParentMetric("Eficiență", "$efficiencyScore%")
                 ParentMetric("Reparări", state.repairRounds.toString())
-                ParentMetric("Zile", state.dailyStreak.toString())
             }
             AnimatedVisibility(visible = state.lastSessionMinutes > 0) {
                 LastSessionSummary(state = state)
@@ -2424,13 +2460,74 @@ private fun ParentInsightStrip(
                         active = state.operation == MathOperation.Subtraction
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+                    EfficiencyInsightRow(
+                        score = efficiencyScore,
+                        label = efficiencyLabel,
+                        color = efficiencyColor
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         InsightPill("Acuratețe ${accuracy}%", fitColor)
-                        InsightPill("Focus $focusScore%", EmeraldGreen)
+                        InsightPill("Eficiență $efficiencyScore%", efficiencyColor)
                         InsightPill("Ghicit blocat", CoralBlue)
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EfficiencyInsightRow(
+    score: Int,
+    label: String,
+    color: Color
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = color.copy(alpha = 0.11f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.34f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Guess Guard",
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    "$label · $score%",
+                    color = color,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.End
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            LinearProgressIndicator(
+                progress = { score / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = color,
+                trackColor = Color.White.copy(alpha = 0.12f),
+                strokeCap = StrokeCap.Round
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                "Scade când apar reparații sau răspunsuri greșite consecutive.",
+                color = TextSandy.copy(alpha = 0.76f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 13.sp
+            )
         }
     }
 }

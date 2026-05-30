@@ -34,6 +34,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - micro-celebrare scurtă după răspuns corect: `Comoară +1`, streak și colecție, fără să rupă ritmul sesiunii
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale
 - `Parent Dash` cu semnal de potrivire a dificultății, după logica din PDF: peste 95% poate fi prea ușor, sub 70% intră suportul
+- `Guess Guard` în Parent Dash: scor de eficiență inspirat de controlul de calitate/waste din PDF, bazat pe acuratețe, reparații și greșeli consecutive
 - `Learning Plan` cu metrici separate pentru Adunare și Scădere, ca skill gaps să fie vizibile rapid
 
 Vezi `docs/premium-learning-plan.md` pentru principiile de produs și următoarele milestone-uri.

@@ -14,6 +14,7 @@
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
 - Learning Plan pentru părinte: aplicația marchează dacă dificultatea pare potrivită, prea ușoară sau prea grea, folosind pragurile 95%/70% descrise în PDF.
 - Skill gaps vizibile: Parent Dash separă acuratețea pentru `Adunare` și `Scădere`, cu stare de calibrare până există suficiente încercări.
+- Guess Guard pentru părinte: Parent Dash include un scor de eficiență inspirat de semnalul de quality control/waste din PDF, dar formulat blând pentru vârsta lui Oséa.
 - Sprijin pentru vârstă mică: fiecare problemă este concretă, atinsă cu degetul și numărabilă înainte de alegerea răspunsului numeric.
 - Rezultat concret după numărare: aplicația afișează `Total sigur` sau `Rămân pe punte` doar după ce toate obiectele au fost atinse.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
@@ -41,8 +42,9 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 12. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
 13. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
 14. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-15. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-16. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
+15. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+16. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+17. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
 
 ## Următoarele Milestone-uri Premium
 
@@ -76,6 +78,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
+- QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.
 - QA tehnic: setările de sesiune sunt persistate în `SharedPreferences`, aplicate imediat în `GameState` și ținute pliate implicit ca să nu distragă copilul.
