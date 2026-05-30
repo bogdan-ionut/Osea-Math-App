@@ -266,6 +266,10 @@ fun learningEfficiencyLabel(score: Int, attempts: Int): String {
     }
 }
 
+fun dailyRingProgress(current: Int, total: Int): Float {
+    return if (total <= 0) 0f else (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+}
+
 private fun currentLocalDayIndex(): Int {
     val now = System.currentTimeMillis()
     val localOffsetMillis = TimeZone.getDefault().getOffset(now)
@@ -836,7 +840,9 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     PremiumHero(state = state)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+                    DashboardHeader(state = state)
+                    Spacer(modifier = Modifier.height(10.dp))
                     LearningJourney(correctTotal = state.correctTotal, dailyTarget = state.dailyTarget)
                     Spacer(modifier = Modifier.height(12.dp))
                     ProblemStage(
@@ -878,8 +884,6 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                             viewModel.onAnswer(answer)
                         }
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    DashboardHeader(state = state)
                     Spacer(modifier = Modifier.height(12.dp))
                     RewardHarbor(state = state)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -1187,19 +1191,19 @@ private fun DashboardHeader(state: GameState) {
     val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal)
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         DailyRing(
             modifier = Modifier.weight(1f),
-            title = "Sesiune",
+            title = "Timp",
             current = state.sessionSecondsElapsed,
             total = state.sessionSecondsTotal,
             color = CoralBlue,
-            centerText = "%02d:%02d".format(state.sessionSecondsElapsed / 60, state.sessionSecondsElapsed % 60)
+            centerText = "${state.sessionSecondsElapsed / 60}m"
         )
         DailyRing(
             modifier = Modifier.weight(1f),
-            title = "Țintă",
+            title = "Azi",
             current = state.correctTotal,
             total = state.dailyTarget,
             color = StarGold,
@@ -1207,7 +1211,7 @@ private fun DashboardHeader(state: GameState) {
         )
         DailyRing(
             modifier = Modifier.weight(1f),
-            title = "Acuratețe",
+            title = "Sigur",
             current = accuracy,
             total = 100,
             color = EmeraldGreen,
@@ -1225,36 +1229,36 @@ private fun DailyRing(
     color: Color,
     centerText: String
 ) {
-    val progress = (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+    val progress = dailyRingProgress(current = current, total = total)
     Surface(
-        modifier = modifier.height(112.dp),
-        shape = RoundedCornerShape(22.dp),
-        color = Color.White.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f))
+        modifier = modifier.height(78.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFF082B38).copy(alpha = 0.72f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.28f))
     ) {
         Column(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Box(contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(58.dp),
+                    modifier = Modifier.size(42.dp),
                     color = Color.White.copy(alpha = 0.12f),
-                    strokeWidth = 6.dp
+                    strokeWidth = 5.dp
                 )
                 CircularProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.size(58.dp),
+                    modifier = Modifier.size(42.dp),
                     color = color,
-                    strokeWidth = 6.dp,
+                    strokeWidth = 5.dp,
                     strokeCap = StrokeCap.Round
                 )
-                Text(centerText, color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                Text(centerText, color = Color.White, fontWeight = FontWeight.Black, fontSize = 11.sp)
             }
-            Spacer(modifier = Modifier.height(7.dp))
-            Text(title, color = TextSandy, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(title, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

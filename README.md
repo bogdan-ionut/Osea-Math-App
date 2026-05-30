@@ -13,6 +13,7 @@ View your app in AI Studio: https://ai.studio/apps/4379ff2f-35fc-4002-9a99-3cd58
 Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de mastery, inspirată de white paper-ul 2 Hour Learning:
 
 - sesiune concentrată de 25 de minute
+- Daily Rings vizibile imediat sus: timp, ținta de azi și siguranța răspunsurilor
 - progres vizual prin `Harta Mastery`
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu

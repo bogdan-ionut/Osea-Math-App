@@ -5,6 +5,7 @@
 - Mastery înainte de progres: Oséa avansează doar după răspunsuri corecte repetate, iar sesiunea zilnică are o țintă clară.
 - Scădere după bazele de adunare: operațiile cu minus apar adaptiv doar de la nivelul 3, ca extensie a mastery-ului, nu ca încărcare timpurie.
 - Sesiuni scurte și concentrate: aplicația folosește un inel de sesiune de 25 de minute, aliniat cu structura din white paper.
+- Daily Rings la începutul sesiunii: copilul vede imediat timpul, ținta zilei și siguranța răspunsurilor înainte de exercițiu.
 - Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
@@ -29,22 +30,23 @@
 Prima versiune upgradată păstrează fantezia marină, dar mută experiența de la quiz simplu la o buclă ghidată de mastery:
 
 1. Oséa vede o misiune și atinge fiecare obiect pentru a număra.
-2. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
-3. Aplicația oferă un set mic de răspunsuri.
-4. Răspunsurile corecte umplu ținta zilnică și duc harta înainte.
-5. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
-6. Răspunsurile greșite activează coaching calm, nu pedeapsă.
-7. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
-8. După primele niveluri, apar scăderi concrete: comori de pe punte minus comori puse în cufăr.
-9. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
-10. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
-11. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
-12. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-13. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
-14. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-15. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-16. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-17. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
+2. Daily Rings îi arată din primul ecran timpul, ținta de azi și siguranța.
+3. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
+4. Aplicația oferă un set mic de răspunsuri.
+5. Răspunsurile corecte umplu ținta zilnică și duc harta înainte.
+6. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
+7. Răspunsurile greșite activează coaching calm, nu pedeapsă.
+8. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
+9. După primele niveluri, apar scăderi concrete: comori de pe punte minus comori puse în cufăr.
+10. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
+11. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
+12. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
+13. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
+14. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
+15. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
+16. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+17. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+18. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
 
 ## Următoarele Milestone-uri Premium
 
@@ -79,6 +81,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
+- QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.
 - QA tehnic: setările de sesiune sunt persistate în `SharedPreferences`, aplicate imediat în `GameState` și ținute pliate implicit ca să nu distragă copilul.

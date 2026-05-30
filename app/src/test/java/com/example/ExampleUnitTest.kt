@@ -30,6 +30,14 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun dailyRingProgressIsClampedAndSafe() {
+        assertEquals(0f, dailyRingProgress(current = 5, total = 0), 0.001f)
+        assertEquals(0f, dailyRingProgress(current = -2, total = 10), 0.001f)
+        assertEquals(0.5f, dailyRingProgress(current = 5, total = 10), 0.001f)
+        assertEquals(1f, dailyRingProgress(current = 14, total = 10), 0.001f)
+    }
+
+    @Test
     fun dailyStreakContinuesOnlyAcrossConsecutiveDays() {
         assertEquals(1, nextDailyStreak(lastCompletionDay = 0, currentStreak = 0, today = 100))
         assertEquals(4, nextDailyStreak(lastCompletionDay = 99, currentStreak = 3, today = 100))
