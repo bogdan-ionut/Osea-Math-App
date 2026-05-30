@@ -25,4 +25,24 @@ class GreetingScreenshotTest {
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
   }
+
+  @Test
+  fun session_break_screenshot() {
+    val state = GameState(
+      correctTotal = 5,
+      attemptsTotal = 6,
+      repairRounds = 1,
+      sessionSecondsElapsed = 10 * 60,
+      sessionSecondsTotal = 10 * 60,
+      dailyTarget = 12
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        SessionBreakScreen(state = state, onStartFreshSession = {})
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/session_break.png")
+  }
 }

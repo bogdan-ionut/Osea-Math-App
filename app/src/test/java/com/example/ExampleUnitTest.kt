@@ -49,6 +49,13 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun sessionTimeUpOnlyWhenTimeBoxEndsWithoutCelebration() {
+        assertEquals(false, sessionTimeUp(GameState(sessionSecondsElapsed = 9, sessionSecondsTotal = 10)))
+        assertEquals(true, sessionTimeUp(GameState(sessionSecondsElapsed = 10, sessionSecondsTotal = 10)))
+        assertEquals(false, sessionTimeUp(GameState(sessionSecondsElapsed = 10, sessionSecondsTotal = 10, showCelebration = true)))
+    }
+
+    @Test
     fun dailyStreakContinuesOnlyAcrossConsecutiveDays() {
         assertEquals(1, nextDailyStreak(lastCompletionDay = 0, currentStreak = 0, today = 100))
         assertEquals(4, nextDailyStreak(lastCompletionDay = 99, currentStreak = 3, today = 100))

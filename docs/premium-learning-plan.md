@@ -5,6 +5,7 @@
 - Mastery înainte de progres: Oséa avansează doar după răspunsuri corecte repetate, iar sesiunea zilnică are o țintă clară.
 - Scădere după bazele de adunare: operațiile cu minus apar adaptiv doar de la nivelul 3, ca extensie a mastery-ului, nu ca încărcare timpurie.
 - Sesiuni scurte și concentrate: aplicația folosește un inel de sesiune de 25 de minute, aliniat cu structura din white paper.
+- Pauză după time-box: când timpul sesiunii se termină, jocul oprește răspunsurile și afișează un ecran calm de pauză cu sumar.
 - Daily Rings la începutul sesiunii: copilul vede imediat timpul, ținta zilei și siguranța răspunsurilor înainte de exercițiu.
 - Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
@@ -43,12 +44,13 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 11. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
 12. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
 13. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
-14. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-15. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
-16. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-17. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-18. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-19. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
+14. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
+15. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
+16. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
+17. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
+18. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+19. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+20. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
 
 ## Următoarele Milestone-uri Premium
 
@@ -75,6 +77,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: bucla principală a fost reordonată ca problema, coach-ul și răspunsurile să fie vizibile înainte de dashboard/recompense.
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
+- QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
@@ -85,6 +88,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
+- QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.
 - QA tehnic: setările de sesiune sunt persistate în `SharedPreferences`, aplicate imediat în `GameState` și ținute pliate implicit ca să nu distragă copilul.

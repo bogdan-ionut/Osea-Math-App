@@ -282,6 +282,10 @@ fun dailyRingProgress(current: Int, total: Int): Float {
     return if (total <= 0) 0f else (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
 }
 
+fun sessionTimeUp(state: GameState): Boolean {
+    return !state.showCelebration && state.sessionSecondsElapsed >= state.sessionSecondsTotal
+}
+
 private fun currentLocalDayIndex(): Int {
     val now = System.currentTimeMillis()
     val localOffsetMillis = TimeZone.getDefault().getOffset(now)
@@ -368,7 +372,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onAnswer(answer: Int) {
         _uiState.update { current ->
-            if (current.showCelebration || current.isCorrecting) return@update current
+            if (current.showCelebration || current.isCorrecting || sessionTimeUp(current)) return@update current
 
             val correctAnswer = correctAnswerFor(current)
             val attempts = current.attemptsTotal + 1
@@ -540,6 +544,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 additionAttempts = current.additionAttempts,
                 subtractionCorrect = current.subtractionCorrect,
                 subtractionAttempts = current.subtractionAttempts
+            )
+        }
+    }
+
+    fun startFreshSession() {
+        _uiState.update { current ->
+            generateGame(1).copy(
+                lifetimeCoins = current.lifetimeCoins,
+                completedSessions = current.completedSessions,
+                bestStreak = current.bestStreak,
+                dailyStreak = current.dailyStreak,
+                lastCompletionDay = current.lastCompletionDay,
+                lastSessionMinutes = current.lastSessionMinutes,
+                lastSessionAccuracy = current.lastSessionAccuracy,
+                lastSessionRepairs = current.lastSessionRepairs,
+                dailyTarget = current.dailyTarget,
+                sessionSecondsTotal = current.sessionSecondsTotal,
+                maxDifficulty = current.maxDifficulty,
+                additionCorrect = current.additionCorrect,
+                additionAttempts = current.additionAttempts,
+                subtractionCorrect = current.subtractionCorrect,
+                subtractionAttempts = current.subtractionAttempts,
+                coachMessage = "Pauza s-a terminat. Pornim încet, cu obiecte mici."
             )
         }
     }
@@ -843,6 +870,8 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
             OceanBackdrop()
             if (state.showCelebration) {
                 CelebrationScreen(state = state, onPlayAgain = viewModel::playAgain)
+            } else if (sessionTimeUp(state)) {
+                SessionBreakScreen(state = state, onStartFreshSession = viewModel::startFreshSession)
             } else {
                 Column(
                     modifier = Modifier
@@ -890,7 +919,7 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                         wrongAnswer = state.selectedWrongAnswer,
                         isCorrecting = state.isCorrecting,
                         correctAnswer = correctAnswerFor(state),
-                        isEnabled = answerButtonsUnlocked(state, countedItems.size),
+                        isEnabled = answerButtonsUnlocked(state, countedItems.size) && !sessionTimeUp(state),
                         onAnswer = { answer ->
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.onAnswer(answer)
@@ -2998,6 +3027,121 @@ fun CelebrationScreen(state: GameState, onPlayAgain: () -> Unit) {
 }
 
 @Composable
+internal fun SessionBreakScreen(
+    state: GameState,
+    onStartFreshSession: () -> Unit
+) {
+    val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal)
+    val minutes = maxOf(1, state.sessionSecondsTotal / 60)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            modifier = Modifier.size(136.dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.16f),
+            border = BorderStroke(2.dp, CoralBlue.copy(alpha = 0.62f))
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(id = R.drawable.item_ship),
+                    contentDescription = "Corabie de pauză",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.padding(18.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Pauză de punte",
+            color = StarGold,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Timpul sesiunii s-a terminat. Creierul de căpitan are nevoie de odihnă.",
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 23.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFF123343).copy(alpha = 0.9f),
+            border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.42f))
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CelebrationMetric(
+                        title = "Minute",
+                        value = "$minutes",
+                        detail = "focus",
+                        color = CoralBlue,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CelebrationMetric(
+                        title = "Comori",
+                        value = "${state.correctTotal}/${state.dailyTarget}",
+                        detail = "azi",
+                        color = StarGold,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CelebrationMetric(
+                        title = "Acuratețe",
+                        value = "$accuracy%",
+                        detail = "sigur",
+                        color = if (accuracy >= 70) EmeraldGreen else RubyRed,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CelebrationMetric(
+                        title = "Reparări",
+                        value = state.repairRounds.toString(),
+                        detail = "calm",
+                        color = if (state.repairRounds == 0) EmeraldGreen else StarGold,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(22.dp))
+        Button(
+            onClick = onStartFreshSession,
+            colors = ButtonDefaults.buttonColors(containerColor = CoralBlue),
+            shape = RoundedCornerShape(22.dp),
+            modifier = Modifier
+                .height(64.dp)
+                .fillMaxWidth(0.84f)
+        ) {
+            Text(
+                text = "Începe sesiune nouă",
+                fontSize = 19.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Black
+            )
+        }
+    }
+}
+
+@Composable
 private fun CelebrationMetric(
     title: String,
     value: String,
@@ -3006,7 +3150,7 @@ private fun CelebrationMetric(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.height(82.dp),
+        modifier = modifier.height(94.dp),
         shape = RoundedCornerShape(18.dp),
         color = color.copy(alpha = 0.14f),
         border = BorderStroke(1.dp, color.copy(alpha = 0.45f))
@@ -3018,7 +3162,7 @@ private fun CelebrationMetric(
         ) {
             Text(title, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Black)
             Text(value, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
-            Text(detail, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text(detail, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
