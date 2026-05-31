@@ -13,6 +13,7 @@ View your app in AI Studio: https://ai.studio/apps/4379ff2f-35fc-4002-9a99-3cd58
 Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de mastery, inspirată de white paper-ul 2 Hour Learning:
 
 - sesiune concentrată de 25 de minute
+- onboarding scurt la prima rulare, cu preset recomandat pentru 4 ani: 8 comori, 10 minute și nivel 3
 - ecran de pauză la finalul time-box-ului, ca sesiunea să nu curgă la nesfârșit
 - Daily Rings vizibile imediat sus: timp, ținta de azi și siguranța răspunsurilor
 - `Focus Mastery` pe fiecare rundă, ca Oséa și părintele să vadă ce abilitate se antrenează chiar acum
@@ -83,3 +84,4 @@ Generated debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Latest visual QA screenshot: `app/src/test/screenshots/greeting.png`.
 Recovery mission visual QA: `app/src/test/screenshots/recovery_mission_stage.png`.
 Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.
+Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.

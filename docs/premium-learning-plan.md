@@ -5,6 +5,7 @@
 - Mastery înainte de progres: Oséa avansează doar după răspunsuri corecte repetate, iar sesiunea zilnică are o țintă clară.
 - Scădere după bazele de adunare: operațiile cu minus apar adaptiv doar de la nivelul 3, ca extensie a mastery-ului, nu ca încărcare timpurie.
 - Sesiuni scurte și concentrate: aplicația folosește un inel de sesiune de 25 de minute, aliniat cu structura din white paper.
+- Onboarding de ritm: prima rulare oferă preset recomandat pentru 4 ani, plus variante mai lungi, astfel încât target-ul și challenge-ul să fie alese intenționat.
 - Pauză după time-box: când timpul sesiunii se termină, jocul oprește răspunsurile și afișează un ecran calm de pauză cu sumar.
 - Daily Rings la începutul sesiunii: copilul vede imediat timpul, ținta zilei și siguranța răspunsurilor înainte de exercițiu.
 - Focus Mastery pe rundă: ecranul arată explicit dacă runda antrenează adunare mică, minus concret, reparare sau sprijin, fără să ceară citire lungă.
@@ -58,8 +59,9 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 19. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
 20. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
 21. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
-22. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-23. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
+22. La prima rulare, părintele alege un ritm de start: `4 ani`, `Ritm stabil` sau `Aventură mare`.
+23. Părintele poate ajusta ulterior sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+24. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
 
 ## Următoarele Milestone-uri Premium
 
@@ -67,7 +69,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - Extinderea asset pack-ului cu animații ușoare și variante rare pentru recompensele vizuale de colecție.
 - Extinderea narațiunii vocale cu voci înregistrate custom pentru Osea, dacă TTS-ul device-ului nu e suficient de cald.
 - Ecran detaliat doar pentru părinte: istoric pe zile, skill gaps, timp de lucru și pași recomandați.
-- Onboarding scurt pentru alegerea duratei sesiunii și a sumelor maxime potrivite vârstei.
+- Onboarding completat cu preset recomandat; următorul pas este personalizare mai fină după câteva sesiuni reale.
 
 ## Asset-uri Vizuale
 
@@ -86,6 +88,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - APK-ul debug generat local se află în `app/build/outputs/apk/debug/app-debug.apk`.
 - `recordRoborazziDebug` generează un screenshot valid la `app/src/test/screenshots/greeting.png`.
 - QA vizual Pixel 8: bucla principală a fost reordonată ca problema, coach-ul și răspunsurile să fie vizibile înainte de dashboard/recompense.
+- QA vizual Pixel 8: onboarding-ul are captură Roborazzi dedicată pentru presetul recomandat de start.
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
@@ -109,6 +112,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
 - QA tehnic: `Port sigur` are teste unitare pentru range mic, declanșarea struggle detector-ului și queue-ul după reparare.
 - QA tehnic: colecția de recompense are teste unitare pentru praguri, următorul unlock, monede rămase și progres.
+- QA tehnic: preset-urile de onboarding au teste unitare pentru recomandarea de 4 ani, scalarea pentru copii mai mari și sumarul afișat.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.

@@ -242,6 +242,30 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun onboardingPresetsStartWithTheAgeFourRecommendation() {
+        val presets = onboardingPresetOptions()
+        val recommended = recommendedOnboardingPresetForAge(4)
+
+        assertEquals("age4", presets.first().id)
+        assertEquals(true, presets.first().recommended)
+        assertEquals("age4", recommended.id)
+        assertEquals(8, recommended.dailyTarget)
+        assertEquals(10, recommended.sessionMinutes)
+        assertEquals(3, recommended.maxDifficulty)
+        assertEquals("8 comori · 10 min · nivel 3", onboardingPresetSummary(recommended))
+    }
+
+    @Test
+    fun onboardingPresetsScaleForOlderChildren() {
+        val recommended = recommendedOnboardingPresetForAge(6)
+
+        assertEquals("steady", recommended.id)
+        assertEquals(12, recommended.dailyTarget)
+        assertEquals(15, recommended.sessionMinutes)
+        assertEquals(4, recommended.maxDifficulty)
+    }
+
+    @Test
     fun roundFocusExplainsTheCurrentMasteryGoal() {
         assertEquals(
             RoundFocus(

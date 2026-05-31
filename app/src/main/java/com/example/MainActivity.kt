@@ -160,6 +160,17 @@ data class RoundStepCue(
     val color: Color
 )
 
+data class OnboardingPreset(
+    val id: String,
+    val title: String,
+    val detail: String,
+    val dailyTarget: Int,
+    val sessionMinutes: Int,
+    val maxDifficulty: Int,
+    val color: Color,
+    val recommended: Boolean = false
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -187,6 +198,47 @@ private val learningIslands = listOf(
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
 private val rareReward = RewardRarity("Rar", Color(0xFFFFD54F))
 private val legendaryReward = RewardRarity("Legendar", Color(0xFFFF8A65))
+
+private val onboardingPresets = listOf(
+    OnboardingPreset(
+        id = "age4",
+        title = "4 ani",
+        detail = "8 comori, 10 minute, minus mic mai târziu",
+        dailyTarget = 8,
+        sessionMinutes = 10,
+        maxDifficulty = 3,
+        color = EmeraldGreen,
+        recommended = true
+    ),
+    OnboardingPreset(
+        id = "steady",
+        title = "Ritm stabil",
+        detail = "12 comori, 15 minute, scăderi ghidate",
+        dailyTarget = 12,
+        sessionMinutes = 15,
+        maxDifficulty = 4,
+        color = CoralBlue
+    ),
+    OnboardingPreset(
+        id = "bold",
+        title = "Aventură mare",
+        detail = "16 comori, 25 minute, provocări complete",
+        dailyTarget = 16,
+        sessionMinutes = 25,
+        maxDifficulty = 5,
+        color = StarGold
+    )
+)
+
+fun onboardingPresetOptions(): List<OnboardingPreset> = onboardingPresets
+
+fun recommendedOnboardingPresetForAge(age: Int): OnboardingPreset {
+    return if (age <= 4) onboardingPresets.first { it.id == "age4" } else onboardingPresets.first { it.id == "steady" }
+}
+
+fun onboardingPresetSummary(preset: OnboardingPreset): String {
+    return "${preset.dailyTarget} comori · ${preset.sessionMinutes} min · nivel ${preset.maxDifficulty}"
+}
 
 fun activeLearningIslandIndexFor(correctTotal: Int): Int {
     val nextIslandIndex = learningIslands.indexOfFirst { correctTotal < it.targetCoins }
@@ -650,6 +702,7 @@ data class GameState(
     val struggleSupportActive: Boolean = false,
     val recoveryMissionQueued: Boolean = false,
     val recoveryMissionActive: Boolean = false,
+    val showOnboarding: Boolean = false,
     val sessionSecondsTotal: Int = 25 * 60,
     val sessionSecondsElapsed: Int = 0,
     val dailyTarget: Int = 12,
@@ -690,7 +743,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             dailyTarget = progressStore.getInt("dailyTarget", 12),
             sessionSecondsTotal = progressStore.getInt("sessionSecondsTotal", 25 * 60),
             maxDifficulty = progressStore.getInt("maxDifficulty", 5),
-            sessionHistory = loadSessionHistory()
+            sessionHistory = loadSessionHistory(),
+            showOnboarding = !progressStore.getBoolean("onboardingComplete", false)
         )
     )
     val uiState: StateFlow<GameState> = _uiState.asStateFlow()
@@ -700,7 +754,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             while (true) {
                 delay(1000L)
                 _uiState.update { state ->
-                    if (state.sessionSecondsElapsed < state.sessionSecondsTotal && !state.showCelebration) {
+                    if (state.sessionSecondsElapsed < state.sessionSecondsTotal && !state.showCelebration && !state.showOnboarding) {
                         state.copy(sessionSecondsElapsed = state.sessionSecondsElapsed + 1)
                     } else {
                         state
@@ -978,6 +1032,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             state.copy(
                 maxDifficulty = normalizedDifficulty,
                 difficultyLevel = state.difficultyLevel.coerceAtMost(normalizedDifficulty)
+            )
+        }
+    }
+
+    fun completeOnboarding(preset: OnboardingPreset) {
+        val normalizedTarget = preset.dailyTarget.coerceIn(6, 18)
+        val normalizedSeconds = preset.sessionMinutes.coerceIn(10, 25) * 60
+        val normalizedDifficulty = preset.maxDifficulty.coerceIn(2, 5)
+        progressStore.edit()
+            .putBoolean("onboardingComplete", true)
+            .putInt("dailyTarget", normalizedTarget)
+            .putInt("sessionSecondsTotal", normalizedSeconds)
+            .putInt("maxDifficulty", normalizedDifficulty)
+            .apply()
+
+        _uiState.update { state ->
+            state.copy(
+                showOnboarding = false,
+                dailyTarget = normalizedTarget,
+                sessionSecondsTotal = normalizedSeconds,
+                sessionSecondsElapsed = state.sessionSecondsElapsed.coerceAtMost(normalizedSeconds),
+                maxDifficulty = normalizedDifficulty,
+                difficultyLevel = state.difficultyLevel.coerceAtMost(normalizedDifficulty),
+                coachMessage = "Start ales: ${preset.title}. Pornim cu pași mici și siguri.",
+                missionTitle = nextMissionMessage(state.difficultyLevel.coerceAtMost(normalizedDifficulty), state.operation)
             )
         }
     }
@@ -1326,7 +1405,9 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                     )
             )
             OceanBackdrop()
-            if (state.showCelebration) {
+            if (state.showOnboarding) {
+                OnboardingScreen(onPresetSelected = viewModel::completeOnboarding)
+            } else if (state.showCelebration) {
                 CelebrationScreen(state = state, onPlayAgain = viewModel::playAgain)
             } else if (sessionTimeUp(state)) {
                 SessionBreakScreen(state = state, onStartFreshSession = viewModel::startFreshSession)
@@ -1423,6 +1504,185 @@ private fun OceanBackdrop() {
                 start = Offset(0f, y),
                 end = Offset(size.width, y + 16f),
                 strokeWidth = 3f
+            )
+        }
+    }
+}
+
+@Composable
+internal fun OnboardingScreen(
+    onPresetSelected: (OnboardingPreset) -> Unit
+) {
+    var selectedPreset by remember { mutableStateOf(recommendedOnboardingPresetForAge(4)) }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp, vertical = 22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Corabia lui Oséa",
+            color = StarGold,
+            fontSize = 35.sp,
+            fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center,
+            lineHeight = 38.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Alege ritmul de start",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        Image(
+            painter = painterResource(id = R.drawable.item_ship),
+            contentDescription = "Corabie de start",
+            modifier = Modifier.size(132.dp),
+            contentScale = ContentScale.Fit
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        onboardingPresetOptions().forEach { preset ->
+            OnboardingPresetOption(
+                preset = preset,
+                selected = selectedPreset.id == preset.id,
+                onClick = { selectedPreset = preset }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            color = selectedPreset.color.copy(alpha = 0.16f),
+            border = BorderStroke(1.dp, selectedPreset.color.copy(alpha = 0.52f))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 11.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(selectedPreset.color.copy(alpha = 0.26f))
+                        .border(1.dp, Color.White.copy(alpha = 0.42f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = selectedPreset.dailyTarget.toString(),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = onboardingPresetSummary(selectedPreset),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "Poți schimba oricând din Parent Dash.",
+                        color = TextSandy,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 13.sp
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = selectedPreset.color,
+                contentColor = OceanBg
+            ),
+            onClick = { onPresetSelected(selectedPreset) }
+        ) {
+            Text(
+                text = "Pornește aventura",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnboardingPresetOption(
+    preset: OnboardingPreset,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(22.dp),
+        color = if (selected) preset.color.copy(alpha = 0.18f) else Color(0xFF123343).copy(alpha = 0.76f),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) preset.color.copy(alpha = 0.82f) else Color.White.copy(alpha = 0.14f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(54.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(preset.color.copy(alpha = if (selected) 0.32f else 0.14f))
+                    .border(1.dp, Color.White.copy(alpha = if (selected) 0.52f else 0.2f), RoundedCornerShape(18.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = preset.sessionMinutes.toString(),
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = preset.title,
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    if (preset.recommended) {
+                        Spacer(modifier = Modifier.width(7.dp))
+                        StatusPill("Recomandat", EmeraldGreen)
+                    }
+                }
+                Text(
+                    text = preset.detail,
+                    color = TextSandy,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 15.sp
+                )
+            }
+            Text(
+                text = if (selected) "✓" else "",
+                color = preset.color,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.width(20.dp),
+                textAlign = TextAlign.Center
             )
         }
     }

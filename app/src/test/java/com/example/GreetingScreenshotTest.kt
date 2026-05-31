@@ -1,5 +1,6 @@
 package com.example
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
 import com.example.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -30,6 +32,12 @@ class GreetingScreenshotTest {
 
   @Test
   fun greeting_screenshot() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    context.getSharedPreferences("osea_learning_progress", Context.MODE_PRIVATE)
+      .edit()
+      .putBoolean("onboardingComplete", true)
+      .apply()
+
     composeTestRule.setContent { MyApplicationTheme { MathGameScreen() } }
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
@@ -53,6 +61,24 @@ class GreetingScreenshotTest {
     }
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/session_break.png")
+  }
+
+  @Test
+  fun onboarding_screenshot() {
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          OnboardingScreen(onPresetSelected = {})
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/onboarding.png")
   }
 
   @Test
