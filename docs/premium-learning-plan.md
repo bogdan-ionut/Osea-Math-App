@@ -29,6 +29,7 @@
 - Rezultat concret după numărare: aplicația afișează `Total sigur` sau `Rămân pe punte` doar după ce toate obiectele au fost atinse.
 - Scădere concretă: copilul pornește cu obiectele de pe punte, mută primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
+- Răspunsuri ca obiecte de joc: butoanele numerice sunt prezentate ca mici cufere de răspuns, cu monede, textură, sparkle și feedback vizual pentru corect/greșit.
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
 - Ghid vizual de scădere: runda afișează explicit faza curentă (`-1 Mută în cufăr`, `= Numără ce rămâne`, răspunsul final), ca minusul să fie o acțiune concretă, nu doar o formulă.
@@ -95,6 +96,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - APK-ul debug generat local se află în `app/build/outputs/apk/debug/app-debug.apk`.
 - `recordRoborazziDebug` generează un screenshot valid la `app/src/test/screenshots/greeting.png`.
 - QA vizual Pixel 8: bucla principală a fost reordonată ca problema, coach-ul și răspunsurile să fie vizibile înainte de dashboard/recompense.
+- QA vizual Pixel 8: `AnswerGrid` are captură Roborazzi dedicată `answer_chests.png` pentru stările corect/greșit/selectabil.
 - QA vizual Pixel 8: onboarding-ul are captură Roborazzi dedicată pentru presetul recomandat de start.
 - QA vizual Pixel 8: `Misiuni de azi` are captură Roborazzi dedicată pentru cele trei obiective vizuale ale sesiunii.
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.

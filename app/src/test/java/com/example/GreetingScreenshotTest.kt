@@ -185,6 +185,31 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun answer_chests_screenshot() {
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          AnswerGrid(
+            options = listOf(3, 4, 5, 6),
+            wrongAnswer = 4,
+            isCorrecting = true,
+            correctAnswer = 5,
+            isEnabled = true,
+            onAnswer = {}
+          )
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/answer_chests.png")
+  }
+
+  @Test
   fun reward_harbor_progress_screenshot() {
     val state = GameState(
       lifetimeCoins = 10,

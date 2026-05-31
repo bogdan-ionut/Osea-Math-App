@@ -81,7 +81,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.theme.CardBg
 import com.example.ui.theme.CoralBlue
 import com.example.ui.theme.EmeraldGreen
 import com.example.ui.theme.MyApplicationTheme
@@ -4647,7 +4646,7 @@ private fun ListenButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun AnswerGrid(
+internal fun AnswerGrid(
     options: List<Int>,
     wrongAnswer: Int?,
     isCorrecting: Boolean,
@@ -4715,8 +4714,8 @@ private fun AnswerButton(
         targetValue = when {
             isCorrect -> EmeraldGreen
             isWrong -> RubyRed
-            !isEnabled -> Color(0xFF253846)
-            else -> CardBg
+            !isEnabled -> Color(0xFF263D47)
+            else -> Color(0xFF173D4E)
         },
         label = "answerColor"
     )
@@ -4725,25 +4724,119 @@ private fun AnswerButton(
         animationSpec = spring(dampingRatio = 0.58f, stiffness = 380f),
         label = "answerScale"
     )
+    val borderColor = when {
+        isCorrect -> Color.White
+        isWrong -> RubyRed.copy(alpha = 0.85f)
+        isEnabled -> StarGold.copy(alpha = 0.48f)
+        else -> Color.White.copy(alpha = 0.1f)
+    }
+    val numberColor = when {
+        isCorrect || isWrong || isEnabled -> Color.White
+        else -> Color.White.copy(alpha = 0.42f)
+    }
 
     Surface(
         modifier = modifier
-            .height(82.dp)
+            .height(92.dp)
             .scale(scale)
             .clickable(enabled = isEnabled && !isCorrecting) { onAnswer(number) },
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(26.dp),
         color = bgColor,
         tonalElevation = 8.dp,
         shadowElevation = 8.dp,
-        border = BorderStroke(2.dp, if (isCorrect) Color.White else Color.White.copy(alpha = if (isEnabled) 0.1f else 0.05f))
+        border = BorderStroke(if (isCorrect || isWrong || isEnabled) 2.dp else 1.dp, borderColor)
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.White.copy(alpha = if (isEnabled) 0.16f else 0.06f),
+                            bgColor.copy(alpha = 0.94f),
+                            Color.Black.copy(alpha = 0.16f)
+                        )
+                    )
+                )
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val plankColor = Color.White.copy(alpha = if (isEnabled) 0.14f else 0.06f)
+                drawLine(
+                    color = plankColor,
+                    start = Offset(size.width * 0.08f, size.height * 0.28f),
+                    end = Offset(size.width * 0.92f, size.height * 0.28f),
+                    strokeWidth = 2f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = plankColor,
+                    start = Offset(size.width * 0.08f, size.height * 0.72f),
+                    end = Offset(size.width * 0.92f, size.height * 0.72f),
+                    strokeWidth = 2f,
+                    cap = StrokeCap.Round
+                )
+                if (isCorrect) {
+                    val sparkle = StarGold.copy(alpha = 0.86f)
+                    listOf(
+                        Offset(size.width * 0.2f, size.height * 0.22f),
+                        Offset(size.width * 0.82f, size.height * 0.24f),
+                        Offset(size.width * 0.78f, size.height * 0.76f)
+                    ).forEach { point ->
+                        drawLine(
+                            color = sparkle,
+                            start = Offset(point.x - 6f, point.y),
+                            end = Offset(point.x + 6f, point.y),
+                            strokeWidth = 2.4f,
+                            cap = StrokeCap.Round
+                        )
+                        drawLine(
+                            color = sparkle,
+                            start = Offset(point.x, point.y - 6f),
+                            end = Offset(point.x, point.y + 6f),
+                            strokeWidth = 2.4f,
+                            cap = StrokeCap.Round
+                        )
+                    }
+                }
+            }
+            Image(
+                painter = painterResource(id = R.drawable.item_treasure_chest),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(58.dp)
+                    .padding(end = 4.dp, bottom = 2.dp)
+                    .alpha(if (isEnabled || isCorrect || isWrong) 0.34f else 0.13f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.item_gold_coin),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .size(30.dp)
+                    .padding(start = 6.dp, top = 6.dp)
+                    .alpha(if (isEnabled) 0.88f else 0.24f)
+            )
             Text(
                 text = number.toString(),
-                color = Color.White.copy(alpha = if (isEnabled) 1f else 0.42f),
-                fontSize = 38.sp,
+                color = numberColor,
+                fontSize = 42.sp,
                 fontWeight = FontWeight.Black
             )
+            if (isWrong) {
+                Text(
+                    text = "x",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 10.dp, top = 6.dp),
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
         }
     }
 }
