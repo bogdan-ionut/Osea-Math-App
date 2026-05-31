@@ -305,6 +305,12 @@ fun roundStepCueFor(state: GameState, countedCount: Int): RoundStepCue {
             detail = "Numărarea este refăcută. Ultimul număr e ancora.",
             color = StarGold
         )
+        state.recoveryMissionActive && remainingTouches > 0 -> RoundStepCue(
+            badge = "4",
+            title = "Port sigur",
+            detail = "Misiune ușoară: atingem încet comori mici, fără grabă.",
+            color = EmeraldGreen
+        )
         state.operation == MathOperation.Subtraction -> {
             val movedCount = subtractionMovedTouchesFor(state, countedCount)
             val remainingCounted = subtractionRemainingCountedFor(state, countedCount)
@@ -516,11 +522,37 @@ fun selectAdaptiveOperationForNextGame(
     return if (correctTotal % 3 == 2) MathOperation.Subtraction else MathOperation.Addition
 }
 
+fun learningNumberRangeFor(difficulty: Int, recoveryMission: Boolean): IntRange {
+    return if (recoveryMission) {
+        2..4
+    } else {
+        when (difficulty) {
+            1 -> 2..4
+            2 -> 3..5
+            3 -> 4..7
+            4 -> 6..10
+            else -> 8..12
+        }
+    }
+}
+
+fun shouldTriggerStruggleSupport(consecutiveWrong: Int, recoveryMissionActive: Boolean): Boolean {
+    return consecutiveWrong >= 2 || recoveryMissionActive
+}
+
+fun shouldQueueRecoveryAfterCorrect(state: GameState, finishedDailyTarget: Boolean): Boolean {
+    return !finishedDailyTarget && state.recoveryMissionQueued && state.selectedWrongAnswer != null
+}
+
 fun roundFocusFor(state: GameState): RoundFocus {
     return when {
         state.selectedWrongAnswer != null -> RoundFocus(
             title = "Reparare calmă",
             goal = "Refacem numărarea și alegem numai după ce toate comorile sunt clare."
+        )
+        state.recoveryMissionActive -> RoundFocus(
+            title = "Port sigur",
+            goal = "După o piedică, revenim la până la 4 comori și consolidăm baza."
         )
         state.struggleSupportActive -> RoundFocus(
             title = "Sprijin pe punte",
@@ -579,6 +611,8 @@ data class GameState(
     val showCelebration: Boolean = false,
     val speedBumpActive: Boolean = false,
     val struggleSupportActive: Boolean = false,
+    val recoveryMissionQueued: Boolean = false,
+    val recoveryMissionActive: Boolean = false,
     val sessionSecondsTotal: Int = 25 * 60,
     val sessionSecondsElapsed: Int = 0,
     val dailyTarget: Int = 12,
@@ -686,6 +720,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     current.sessionHistory
                 }
+                val nextRecoveryQueued = shouldQueueRecoveryAfterCorrect(
+                    state = current,
+                    finishedDailyTarget = finishedDailyTarget
+                )
 
                 saveProgress(
                     lifetimeCoins = nextLifetimeCoins,
@@ -717,8 +755,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     repairRounds = current.repairRounds,
                     isCorrecting = !finishedDailyTarget,
                     showCelebration = finishedDailyTarget,
-                    speedBumpActive = leveledUp,
-                    struggleSupportActive = false,
+                    speedBumpActive = leveledUp && !nextRecoveryQueued,
+                    struggleSupportActive = nextRecoveryQueued,
+                    recoveryMissionQueued = nextRecoveryQueued,
+                    recoveryMissionActive = false,
                     lifetimeCoins = nextLifetimeCoins,
                     completedSessions = nextCompletedSessions,
                     bestStreak = nextBestStreak,
@@ -732,7 +772,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     subtractionCorrect = nextSubtractionCorrect,
                     subtractionAttempts = nextSubtractionAttempts,
                     sessionHistory = nextSessionHistory,
-                    coachMessage = if (leveledUp) {
+                    coachMessage = if (nextRecoveryQueued) {
+                        "Port sigur pregătit: următoarea rundă revine la comori mici."
+                    } else if (leveledUp) {
                         "Speed bump trecut. Urcăm puțin nivelul, dar rămânem la obiecte mici."
                     } else {
                         "Perfect, Oséa. Ai numărat cu grijă."
@@ -740,7 +782,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             } else {
                 val consecutiveWrong = current.consecutiveWrong + 1
-                val needsSupport = consecutiveWrong >= 2
+                val needsSupport = shouldTriggerStruggleSupport(
+                    consecutiveWrong = consecutiveWrong,
+                    recoveryMissionActive = current.recoveryMissionActive
+                )
                 val nextDifficulty = if (needsSupport) maxOf(1, current.difficultyLevel - 1) else current.difficultyLevel
 
                 saveProgress(
@@ -769,6 +814,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     difficultyLevel = nextDifficulty,
                     speedBumpActive = false,
                     struggleSupportActive = needsSupport,
+                    recoveryMissionQueued = needsSupport,
+                    recoveryMissionActive = false,
                     additionAttempts = nextAdditionAttempts,
                     subtractionAttempts = nextSubtractionAttempts,
                     coachMessage = if (needsSupport) {
@@ -783,7 +830,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun nextQuestion() {
         _uiState.update { current ->
-            generateGame(current.difficultyLevel, current).copy(
+            val startsRecoveryMission = current.recoveryMissionQueued
+            val generated = generateGame(current.difficultyLevel, current)
+            generated.copy(
                 streak = current.streak,
                 correctTotal = current.correctTotal,
                 attemptsTotal = current.attemptsTotal,
@@ -808,9 +857,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 subtractionCorrect = current.subtractionCorrect,
                 subtractionAttempts = current.subtractionAttempts,
                 sessionHistory = current.sessionHistory,
-                speedBumpActive = current.speedBumpActive,
-                struggleSupportActive = current.struggleSupportActive,
-                coachMessage = nextMissionMessage(current.difficultyLevel)
+                speedBumpActive = current.speedBumpActive && !startsRecoveryMission,
+                struggleSupportActive = startsRecoveryMission,
+                recoveryMissionQueued = false,
+                recoveryMissionActive = startsRecoveryMission,
+                coachMessage = if (startsRecoveryMission) {
+                    recoveryMissionMessage()
+                } else {
+                    nextMissionMessage(current.difficultyLevel, generated.operation)
+                }
             )
         }
     }
@@ -891,17 +946,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun generateGame(difficulty: Int, sourceState: GameState? = null): GameState {
-        val range = when (difficulty) {
-            1 -> 2..4
-            2 -> 3..5
-            3 -> 4..7
-            4 -> 6..10
-            else -> 8..12
-        }
-        val operation = if (sourceState == null) {
-            MathOperation.Addition
-        } else {
-            selectAdaptiveOperationForNextGame(
+        val recoveryMission = sourceState?.recoveryMissionQueued == true
+        val range = learningNumberRangeFor(difficulty = difficulty, recoveryMission = recoveryMission)
+        val operation = when {
+            sourceState == null -> MathOperation.Addition
+            recoveryMission -> MathOperation.Addition
+            else -> selectAdaptiveOperationForNextGame(
                 difficultyLevel = difficulty,
                 maxDifficulty = sourceState.maxDifficulty,
                 correctTotal = sourceState.correctTotal,
@@ -951,8 +1001,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             item2 = rightItem,
             options = options.toList().shuffled(),
             difficultyLevel = difficulty,
-            missionTitle = nextMissionMessage(difficulty, operation)
+            recoveryMissionActive = recoveryMission,
+            missionTitle = if (recoveryMission) recoveryMissionMessage() else nextMissionMessage(difficulty, operation)
         )
+    }
+
+    private fun recoveryMissionMessage(): String {
+        return "Port sigur: revenim la comori mici până la 4."
     }
 
     private fun nextMissionMessage(difficulty: Int, operation: MathOperation): String {
@@ -1156,7 +1211,18 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val countedItems = remember(state.num1, state.num2, state.operation, state.item1, state.item2, state.options, state.repairRound) {
+    val countedItems = remember(
+        state.num1,
+        state.num2,
+        state.operation,
+        state.item1,
+        state.item2,
+        state.options,
+        state.repairRound,
+        state.correctTotal,
+        state.attemptsTotal,
+        state.recoveryMissionActive
+    ) {
         mutableStateMapOf<String, Int>()
     }
 
@@ -2770,7 +2836,10 @@ private fun CoachPanel(
                     AnimatedVisibility(visible = state.speedBumpActive) {
                         StatusPill("Speed bump", StarGold)
                     }
-                    AnimatedVisibility(visible = state.struggleSupportActive) {
+                    AnimatedVisibility(visible = state.recoveryMissionActive) {
+                        StatusPill("Port sigur", EmeraldGreen)
+                    }
+                    AnimatedVisibility(visible = state.struggleSupportActive && !state.recoveryMissionActive) {
                         StatusPill("Suport", CoralBlue)
                     }
                 }
@@ -2801,6 +2870,9 @@ private fun CoachPanel(
                     state.selectedWrongAnswer != null -> {
                         "Gata, ai refăcut numărarea. Alege răspunsul corect."
                     }
+                    state.recoveryMissionActive && countedCount < totalItems -> {
+                        "Port sigur: doar comori mici. Atinge comoara luminoasă și ancorăm baza fără grabă."
+                    }
                     countedCount < totalItems -> {
                         if (state.operation == MathOperation.Subtraction) {
                             val movedCount = subtractionMovedTouchesFor(state, countedCount)
@@ -2827,11 +2899,64 @@ private fun CoachPanel(
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 19.sp
             )
+            AnimatedVisibility(visible = state.recoveryMissionActive && state.selectedWrongAnswer == null) {
+                RecoveryMissionCard(state = state)
+            }
             AnimatedVisibility(visible = state.isCorrecting) {
                 CorrectRewardBurst(state = state)
             }
             AnimatedVisibility(visible = state.selectedWrongAnswer != null) {
                 MasteryRepairCard(state = state)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecoveryMissionCard(state: GameState) {
+    Column {
+        Spacer(modifier = Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = EmeraldGreen.copy(alpha = 0.14f),
+            border = BorderStroke(1.dp, EmeraldGreen.copy(alpha = 0.48f))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .border(1.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.item_anchor),
+                        contentDescription = "Ancoră de port sigur",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize().padding(6.dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Misiune de recuperare",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "Doar ${visibleObjectCountFor(state)} comori. Ținta este să numărăm sigur, nu repede.",
+                        color = TextSandy,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 14.sp
+                    )
+                }
             }
         }
     }

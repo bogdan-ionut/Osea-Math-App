@@ -12,6 +12,7 @@
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
 - Challenge adaptiv: trei răspunsuri corecte activează `Speed bump`; două greșeli activează `Struggle support` și scad dificultatea.
+- Struggle detector concret: după o reparare susținută, următoarea rundă devine `Port sigur`, cu adunări mici până la 4, ca materialul prea greu să fie înlocuit imediat cu bazele potrivite.
 - Selector adaptiv de operații: minusul apare doar după semnale bune la adunare, respectă challenge-ul maxim al părintelui și revine intenționat când scăderea are acuratețe scăzută.
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
 - Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, streak-ul și colecția, apoi jocul continuă automat.
@@ -44,19 +45,20 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 7. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
 8. Răspunsurile greșite activează coaching calm, nu pedeapsă.
 9. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
-10. După primele niveluri, apar scăderi concrete: copilul mută comori de pe punte în cufăr și apoi numără ce a rămas.
-11. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
-12. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
-13. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
-14. Următoarea problemă se adaptează la streak, la setarea maximă a părintelui și la skill gap-ul dintre adunare/scădere.
-15. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
-16. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-17. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
-18. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-19. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-20. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
-21. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-22. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
+10. Dacă apar două greșeli sau copilul se împiedică într-o rundă de suport, următoarea rundă intră în `Port sigur`: adunări mici, obiecte luminoase și țintă până la 4.
+11. După primele niveluri, apar scăderi concrete: copilul mută comori de pe punte în cufăr și apoi numără ce a rămas.
+12. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
+13. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
+14. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
+15. Următoarea problemă se adaptează la streak, la setarea maximă a părintelui și la skill gap-ul dintre adunare/scădere.
+16. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
+17. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
+18. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
+19. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
+20. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+21. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
+22. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+23. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
 
 ## Următoarele Milestone-uri Premium
 
@@ -86,6 +88,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
 - QA vizual Pixel 8: `Parent Dash` cu `Jurnal de căpitan` are captură Roborazzi dedicată pentru trend și recomandarea următorului pas.
+- QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
@@ -101,6 +104,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
 - QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
+- QA tehnic: `Port sigur` are teste unitare pentru range mic, declanșarea struggle detector-ului și queue-ul după reparare.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.

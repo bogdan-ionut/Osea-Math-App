@@ -200,6 +200,28 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun recoveryMissionReturnsToSmallConcreteBasics() {
+        assertEquals(2..4, learningNumberRangeFor(difficulty = 5, recoveryMission = true))
+        assertEquals(6..10, learningNumberRangeFor(difficulty = 4, recoveryMission = false))
+        assertEquals(false, shouldTriggerStruggleSupport(consecutiveWrong = 1, recoveryMissionActive = false))
+        assertEquals(true, shouldTriggerStruggleSupport(consecutiveWrong = 2, recoveryMissionActive = false))
+        assertEquals(true, shouldTriggerStruggleSupport(consecutiveWrong = 1, recoveryMissionActive = true))
+    }
+
+    @Test
+    fun recoveryMissionQueuesOnlyAfterSupportedRepair() {
+        val supportedRepair = GameState(
+            selectedWrongAnswer = 3,
+            recoveryMissionQueued = true
+        )
+        val normalCorrect = GameState(recoveryMissionQueued = false)
+
+        assertEquals(true, shouldQueueRecoveryAfterCorrect(supportedRepair, finishedDailyTarget = false))
+        assertEquals(false, shouldQueueRecoveryAfterCorrect(supportedRepair, finishedDailyTarget = true))
+        assertEquals(false, shouldQueueRecoveryAfterCorrect(normalCorrect, finishedDailyTarget = false))
+    }
+
+    @Test
     fun roundFocusExplainsTheCurrentMasteryGoal() {
         assertEquals(
             RoundFocus(
@@ -223,6 +245,13 @@ class ExampleUnitTest {
             "Sprijin pe punte",
             roundFocusFor(GameState(struggleSupportActive = true)).title
         )
+        assertEquals(
+            RoundFocus(
+                title = "Port sigur",
+                goal = "După o piedică, revenim la până la 4 comori și consolidăm baza."
+            ),
+            roundFocusFor(GameState(recoveryMissionActive = true))
+        )
     }
 
     @Test
@@ -233,6 +262,14 @@ class ExampleUnitTest {
         assertEquals("Atinge comoara", roundStepCueFor(state, countedCount = 0).title)
         assertEquals("5", roundStepCueFor(state, countedCount = 5).badge)
         assertEquals("Alege răspunsul", roundStepCueFor(state, countedCount = 5).title)
+    }
+
+    @Test
+    fun roundStepCueMarksRecoveryMissionAsSafeHarbor() {
+        val state = GameState(num1 = 2, num2 = 1, recoveryMissionActive = true)
+
+        assertEquals("4", roundStepCueFor(state, countedCount = 0).badge)
+        assertEquals("Port sigur", roundStepCueFor(state, countedCount = 0).title)
     }
 
     @Test

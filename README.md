@@ -20,6 +20,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu
+- `Port sigur` după struggle detector: următoarea rundă revine intenționat la comori mici până la 4, pentru consolidarea bazei
 - motor adaptiv pentru următoarea problemă: adunarea trebuie să fie solidă înainte de minus, iar scăderea revine când apare skill gap
 - scădere concretă introdusă adaptiv după primele niveluri de adunare
 - încurajări audio offline
@@ -79,3 +80,4 @@ This branch was verified with:
 
 Generated debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Latest visual QA screenshot: `app/src/test/screenshots/greeting.png`.
+Recovery mission visual QA: `app/src/test/screenshots/recovery_mission_stage.png`.

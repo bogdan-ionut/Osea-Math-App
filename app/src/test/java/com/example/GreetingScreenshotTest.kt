@@ -93,6 +93,40 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun recovery_mission_stage_screenshot() {
+    val state = GameState(
+      num1 = 2,
+      num2 = 1,
+      operation = MathOperation.Addition,
+      difficultyLevel = 2,
+      recoveryMissionActive = true,
+      struggleSupportActive = true,
+      missionTitle = "Port sigur: revenim la comori mici până la 4."
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        val countedItems = remember { mutableStateMapOf<String, Int>() }
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          ProblemStage(
+            state = state,
+            countedItems = countedItems,
+            guidedItemId = nextGuidedItemId(state, countedItems.keys),
+            onItemTapped = {}
+          )
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/recovery_mission_stage.png")
+  }
+
+  @Test
   fun parent_dash_journal_screenshot() {
     val state = GameState(
       correctTotal = 9,
