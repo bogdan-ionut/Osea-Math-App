@@ -21,6 +21,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - progres vizual prin `Harta Mastery`
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
 - hartă de voiaj cu traseu desenat, corabie animată și surprize vizuale pe drum spre comoară
+- insulele de pe hartă au forme desenate și marker-e cu obiecte reale: ancoră, monedă, cufăr și steag de comoară
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu
 - `Port sigur` după struggle detector: următoarea rundă revine intenționat la comori mici până la 4, pentru consolidarea bazei

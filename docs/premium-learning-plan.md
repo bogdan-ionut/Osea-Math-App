@@ -12,6 +12,7 @@
 - Focus Mastery pe rundă: ecranul arată explicit dacă runda antrenează adunare mică, minus concret, reparare sau sprijin, fără să ceară citire lungă.
 - Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic, cu insula activă și comorile rămase până la următorul port.
 - Voiaj animat: harta include traseu desenat, corabie care înaintează după comori și mici surprize vizuale pe ruta spre comoară.
+- Destinații lizibile: insulele sunt desenate pe traseu și marker-ele folosesc obiecte reale de aventură, nu doar cercuri abstracte.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
 - Challenge adaptiv: trei răspunsuri corecte activează `Speed bump`; două greșeli activează `Struggle support` și scad dificultatea.
@@ -136,6 +137,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.
+- QA tehnic: marker-ele de destinație de pe hartă au test unitar pentru asset-urile folosite pe fiecare insulă.
 - QA tehnic: surprizele de voiaj și cufărul vizual au test unitar pentru rotație, momentele de descoperire, textul de progres și limitarea obiectelor desenate.
 - QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.

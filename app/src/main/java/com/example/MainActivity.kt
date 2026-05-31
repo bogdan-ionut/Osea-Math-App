@@ -330,6 +330,15 @@ fun activeLearningIslandSegmentProgress(correctTotal: Int): Float {
     return ((correctTotal - previousTarget).toFloat() / distance.toFloat()).coerceIn(0f, 1f)
 }
 
+fun learningIslandDrawableFor(index: Int): Int {
+    return when (index.coerceIn(0, learningIslands.lastIndex)) {
+        0 -> R.drawable.item_anchor
+        1 -> R.drawable.item_gold_coin
+        2 -> R.drawable.item_treasure_chest
+        else -> R.drawable.item_pirate_flag
+    }
+}
+
 private val rewardDefinitions = listOf(
     RewardDefinition("Monedă", "prima pradă", R.drawable.item_gold_coin, StarGold, 3, commonReward),
     RewardDefinition("Hartă", "drum secret", R.drawable.item_treasure_map, Color(0xFFFFE082), 6, commonReward),
@@ -2322,6 +2331,42 @@ private fun TreasureVoyageMap(
                 val reached = correctTotal >= island.targetCoins
                 val active = index == activeIslandIndex
                 val center = Offset(size.width * x, size.height * y)
+                drawOval(
+                    color = Color.Black.copy(alpha = 0.18f),
+                    topLeft = Offset(center.x - 30f, center.y + 10f),
+                    size = Size(60f, 21f)
+                )
+                drawOval(
+                    color = Color(0xFFE0B760).copy(alpha = if (active || reached) 0.94f else 0.38f),
+                    topLeft = Offset(center.x - 28f, center.y + 6f),
+                    size = Size(56f, 20f)
+                )
+                drawCircle(
+                    color = island.color.copy(alpha = if (active || reached) 0.58f else 0.22f),
+                    radius = if (active) 16f else 13f,
+                    center = center + Offset(0f, 2f)
+                )
+                drawLine(
+                    color = Color(0xFF6D4C2F).copy(alpha = if (active || reached) 0.72f else 0.28f),
+                    start = center + Offset(-7f, 9f),
+                    end = center + Offset(0f, -12f),
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = EmeraldGreen.copy(alpha = if (active || reached) 0.72f else 0.24f),
+                    start = center + Offset(0f, -12f),
+                    end = center + Offset(10f, -19f),
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = EmeraldGreen.copy(alpha = if (active || reached) 0.72f else 0.24f),
+                    start = center + Offset(0f, -12f),
+                    end = center + Offset(-10f, -17f),
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
                 drawCircle(
                     color = Color.Black.copy(alpha = 0.18f),
                     radius = if (active) 25f else 21f,
@@ -2372,6 +2417,7 @@ private fun TreasureVoyageMap(
             learningIslands.forEachIndexed { index, island ->
                 MapIslandMarker(
                     island = island,
+                    destinationDrawableRes = learningIslandDrawableFor(index),
                     reached = correctTotal >= island.targetCoins,
                     active = index == activeIslandIndex
                 )
@@ -2397,6 +2443,7 @@ private fun TreasureVoyageMap(
 @Composable
 private fun MapIslandMarker(
     island: LearningIsland,
+    destinationDrawableRes: Int,
     reached: Boolean,
     active: Boolean
 ) {
@@ -2408,7 +2455,7 @@ private fun MapIslandMarker(
     Surface(
         modifier = Modifier
             .scale(scale)
-            .size(30.dp),
+            .size(34.dp),
         shape = CircleShape,
         color = when {
             active -> island.color
@@ -2421,12 +2468,31 @@ private fun MapIslandMarker(
         )
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = island.icon,
-                color = if (active || reached) OceanBg else Color.White.copy(alpha = 0.7f),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black
+            Image(
+                painter = painterResource(id = destinationDrawableRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(5.dp)
+                    .alpha(if (active || reached) 1f else 0.36f)
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(if (active || reached) StarGold else Color.White.copy(alpha = 0.16f))
+                    .border(1.dp, Color.White.copy(alpha = 0.62f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = island.icon,
+                    color = if (active || reached) OceanBg else Color.White.copy(alpha = 0.62f),
+                    fontSize = 7.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
         }
     }
 }
