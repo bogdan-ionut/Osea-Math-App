@@ -14,6 +14,7 @@
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
 - Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, streak-ul și colecția, apoi jocul continuă automat.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
+- Jurnal pentru părinte: ultimele sesiuni rămân salvate local, cu trend simplu de acuratețe și nivel, ca progresul să nu fie doar „ultima sesiune”.
 - Learning Plan pentru părinte: aplicația marchează dacă dificultatea pare potrivită, prea ușoară sau prea grea, folosind pragurile 95%/70% descrise în PDF.
 - Skill gaps vizibile: Parent Dash separă acuratețea pentru `Adunare` și `Scădere`, cu stare de calibrare până există suficiente încercări.
 - Guess Guard pentru părinte: Parent Dash include un scor de eficiență inspirat de semnalul de quality control/waste din PDF, dar formulat blând pentru vârsta lui Oséa.
@@ -24,7 +25,7 @@
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
 - Continuitate între sesiuni: aplicația salvează local comorile totale, sesiunile finalizate și recordul de streak.
-- Continuitate între zile: streak-ul zilnic și ultimul raport de sesiune rămân salvate pentru Parent Dash.
+- Continuitate între zile: streak-ul zilnic, ultimul raport și `Jurnalul de căpitan` rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
 
 ## Direcția Curentă A Produsului
@@ -46,11 +47,12 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 13. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
 14. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
 15. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-16. Parent Dash păstrează ultima sesiune și streak-ul zilnic, ca progresul să fie vizibil și după redeschiderea aplicației.
+16. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
 17. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
 18. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-19. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-20. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție.
+19. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
+20. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+21. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
 
 ## Următoarele Milestone-uri Premium
 
@@ -79,10 +81,13 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
+- QA vizual Pixel 8: `Parent Dash` cu `Jurnal de căpitan` are captură Roborazzi dedicată pentru trend și recomandarea următorului pas.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
 - QA tehnic: streak-ul zilnic are test unitar pentru zile consecutive, aceeași zi și pauze între sesiuni.
+- QA tehnic: `Jurnalul de căpitan` are test unitar pentru ordonarea sesiunilor, limitarea istoricului și eticheta de trend.
+- QA tehnic: recomandarea `Următorul pas` are test unitar pentru risc de ghicit, introducerea scăderii și gap pe scădere.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
 - QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
 - QA tehnic: interacțiunea de scădere are test unitar pentru mutarea în cufăr și numărarea restului, fără al doilea grup numărat ca adunare.

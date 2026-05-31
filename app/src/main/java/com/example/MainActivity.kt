@@ -132,6 +132,15 @@ data class RewardDefinition(
     val color: Color
 )
 
+data class SessionRecord(
+    val dayIndex: Int,
+    val minutes: Int,
+    val accuracy: Int,
+    val repairs: Int,
+    val coins: Int,
+    val difficulty: Int
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -346,6 +355,47 @@ fun learningEfficiencyLabel(score: Int, attempts: Int): String {
     }
 }
 
+fun appendSessionRecord(
+    history: List<SessionRecord>,
+    record: SessionRecord,
+    limit: Int = 4
+): List<SessionRecord> {
+    return (listOf(record) + history).take(limit.coerceAtLeast(1))
+}
+
+fun sessionJournalTrendLabel(history: List<SessionRecord>): String {
+    if (history.size < 2) return "Prima urmă"
+    val latest = history.first().accuracy
+    val previousAverage = history.drop(1).map { it.accuracy }.average()
+
+    return when {
+        latest >= previousAverage + 5 -> "În urcare"
+        latest + 5 < previousAverage -> "De sprijinit"
+        else -> "Stabil"
+    }
+}
+
+fun parentNextStepFor(
+    additionCorrect: Int,
+    additionAttempts: Int,
+    subtractionCorrect: Int,
+    subtractionAttempts: Int,
+    efficiencyScore: Int,
+    difficultyLevel: Int
+): String {
+    val additionAccuracy = skillAccuracy(correct = additionCorrect, attempts = additionAttempts)
+    val subtractionAccuracy = skillAccuracy(correct = subtractionCorrect, attempts = subtractionAttempts)
+
+    return when {
+        efficiencyScore < 70 -> "Mâine: 8 comori, nivel ușor și numărare ghidată, ca să reducem ghicitul."
+        additionAttempts < 3 -> "Mâine: încălzire cu adunări mici până la 5, fără grabă."
+        additionAccuracy < 80 -> "Mâine: repetă adunări concrete cu obiecte până la 5."
+        difficultyLevel >= 3 && subtractionAttempts < 3 -> "Mâine: introdu 3 scăderi scurte cu mutare în cufăr."
+        subtractionAttempts >= 3 && subtractionAccuracy < 75 -> "Mâine: scăderi pe punte, mută în cufăr înainte de răspuns."
+        else -> "Mâine: păstrează sesiunea scurtă și lasă speed bump-ul să ridice nivelul."
+    }
+}
+
 fun dailyRingProgress(current: Int, total: Int): Float {
     return if (total <= 0) 0f else (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
 }
@@ -396,6 +446,7 @@ data class GameState(
     val additionAttempts: Int = 0,
     val subtractionCorrect: Int = 0,
     val subtractionAttempts: Int = 0,
+    val sessionHistory: List<SessionRecord> = emptyList(),
     val coachMessage: String = "Bun venit, Căpitane Oséa. Numărăm încet și sigur.",
     val missionTitle: String = "Atinge comorile, apoi alege răspunsul."
 )
@@ -418,7 +469,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             subtractionAttempts = progressStore.getInt("subtractionAttempts", 0),
             dailyTarget = progressStore.getInt("dailyTarget", 12),
             sessionSecondsTotal = progressStore.getInt("sessionSecondsTotal", 25 * 60),
-            maxDifficulty = progressStore.getInt("maxDifficulty", 5)
+            maxDifficulty = progressStore.getInt("maxDifficulty", 5),
+            sessionHistory = loadSessionHistory()
         )
     )
     val uiState: StateFlow<GameState> = _uiState.asStateFlow()
@@ -470,6 +522,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     current.dailyStreak
                 }
+                val nextSessionHistory = if (finishedDailyTarget) {
+                    appendSessionRecord(
+                        history = current.sessionHistory,
+                        record = SessionRecord(
+                            dayIndex = today,
+                            minutes = sessionMinutes,
+                            accuracy = sessionAccuracy,
+                            repairs = current.repairRounds,
+                            coins = correctTotal,
+                            difficulty = nextDifficulty
+                        )
+                    )
+                } else {
+                    current.sessionHistory
+                }
 
                 saveProgress(
                     lifetimeCoins = nextLifetimeCoins,
@@ -485,6 +552,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     subtractionCorrect = nextSubtractionCorrect,
                     subtractionAttempts = nextSubtractionAttempts
                 )
+                if (finishedDailyTarget) {
+                    saveSessionHistory(nextSessionHistory)
+                }
 
                 current.copy(
                     streak = current.streak + 1,
@@ -512,6 +582,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     additionAttempts = nextAdditionAttempts,
                     subtractionCorrect = nextSubtractionCorrect,
                     subtractionAttempts = nextSubtractionAttempts,
+                    sessionHistory = nextSessionHistory,
                     coachMessage = if (leveledUp) {
                         "Speed bump trecut. Urcăm puțin nivelul, dar rămânem la obiecte mici."
                     } else {
@@ -587,6 +658,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 additionAttempts = current.additionAttempts,
                 subtractionCorrect = current.subtractionCorrect,
                 subtractionAttempts = current.subtractionAttempts,
+                sessionHistory = current.sessionHistory,
                 speedBumpActive = current.speedBumpActive,
                 struggleSupportActive = current.struggleSupportActive,
                 coachMessage = nextMissionMessage(current.difficultyLevel)
@@ -611,7 +683,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 additionCorrect = current.additionCorrect,
                 additionAttempts = current.additionAttempts,
                 subtractionCorrect = current.subtractionCorrect,
-                subtractionAttempts = current.subtractionAttempts
+                subtractionAttempts = current.subtractionAttempts,
+                sessionHistory = current.sessionHistory
             )
         }
     }
@@ -634,6 +707,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 additionAttempts = current.additionAttempts,
                 subtractionCorrect = current.subtractionCorrect,
                 subtractionAttempts = current.subtractionAttempts,
+                sessionHistory = current.sessionHistory,
                 coachMessage = "Pauza s-a terminat. Pornim încet, cu obiecte mici."
             )
         }
@@ -761,6 +835,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .putInt("subtractionCorrect", subtractionCorrect)
             .putInt("subtractionAttempts", subtractionAttempts)
             .apply()
+    }
+
+    private fun loadSessionHistory(): List<SessionRecord> {
+        val count = progressStore.getInt("sessionHistoryCount", 0).coerceIn(0, 4)
+        return (0 until count).mapNotNull { index ->
+            val prefix = "sessionHistory_${index}_"
+            val minutes = progressStore.getInt("${prefix}minutes", -1)
+            if (minutes <= 0) {
+                null
+            } else {
+                SessionRecord(
+                    dayIndex = progressStore.getInt("${prefix}dayIndex", 0),
+                    minutes = minutes,
+                    accuracy = progressStore.getInt("${prefix}accuracy", 100),
+                    repairs = progressStore.getInt("${prefix}repairs", 0),
+                    coins = progressStore.getInt("${prefix}coins", 0),
+                    difficulty = progressStore.getInt("${prefix}difficulty", 1)
+                )
+            }
+        }
+    }
+
+    private fun saveSessionHistory(history: List<SessionRecord>) {
+        val boundedHistory = history.take(4)
+        val editor = progressStore.edit().putInt("sessionHistoryCount", boundedHistory.size)
+        repeat(4) { index ->
+            val prefix = "sessionHistory_${index}_"
+            val record = boundedHistory.getOrNull(index)
+            if (record == null) {
+                editor
+                    .remove("${prefix}dayIndex")
+                    .remove("${prefix}minutes")
+                    .remove("${prefix}accuracy")
+                    .remove("${prefix}repairs")
+                    .remove("${prefix}coins")
+                    .remove("${prefix}difficulty")
+            } else {
+                editor
+                    .putInt("${prefix}dayIndex", record.dayIndex)
+                    .putInt("${prefix}minutes", record.minutes)
+                    .putInt("${prefix}accuracy", record.accuracy)
+                    .putInt("${prefix}repairs", record.repairs)
+                    .putInt("${prefix}coins", record.coins)
+                    .putInt("${prefix}difficulty", record.difficulty)
+            }
+        }
+        editor.apply()
     }
 }
 
@@ -2846,7 +2967,7 @@ private fun AnswerButton(
 }
 
 @Composable
-private fun ParentInsightStrip(
+internal fun ParentInsightStrip(
     state: GameState,
     onDailyTargetSelected: (Int) -> Unit,
     onSessionMinutesSelected: (Int) -> Unit,
@@ -2888,6 +3009,14 @@ private fun ParentInsightStrip(
         efficiencyScore < 70 -> "Eficiența a scăzut: păstrăm obiecte ghidate, răspunsuri blocate și reparații scurte."
         else -> "Ritmul e bun: păstrăm mastery și creștem doar după streak-uri."
     }
+    val nextParentStep = parentNextStepFor(
+        additionCorrect = state.additionCorrect,
+        additionAttempts = state.additionAttempts,
+        subtractionCorrect = state.subtractionCorrect,
+        subtractionAttempts = state.subtractionAttempts,
+        efficiencyScore = efficiencyScore,
+        difficultyLevel = state.difficultyLevel
+    )
     var showSessionSettings by remember { mutableStateOf(false) }
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -2917,13 +3046,16 @@ private fun ParentInsightStrip(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                ParentMetric("Minute", "${state.sessionSecondsElapsed / 60}/25")
+                ParentMetric("Minute", "${state.sessionSecondsElapsed / 60}/${state.sessionSecondsTotal / 60}")
                 ParentMetric("Acuratețe", "$accuracy%")
                 ParentMetric("Eficiență", "$efficiencyScore%")
                 ParentMetric("Reparări", state.repairRounds.toString())
             }
             AnimatedVisibility(visible = state.lastSessionMinutes > 0) {
                 LastSessionSummary(state = state)
+            }
+            AnimatedVisibility(visible = state.sessionHistory.isNotEmpty()) {
+                SessionJournal(history = state.sessionHistory)
             }
             AnimatedVisibility(visible = showSessionSettings) {
                 Column {
@@ -2971,6 +3103,8 @@ private fun ParentInsightStrip(
                         fontWeight = FontWeight.SemiBold,
                         lineHeight = 14.sp
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    NextParentStepCard(text = nextParentStep, color = fitColor)
                     Spacer(modifier = Modifier.height(8.dp))
                     SkillInsightRow(
                         title = "Adunare",
@@ -3122,6 +3256,33 @@ private fun SkillInsightRow(
 }
 
 @Composable
+private fun NextParentStepCard(text: String, color: Color) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = color.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.34f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Text(
+                "Următorul pas",
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text,
+                color = TextSandy,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
 private fun LastSessionSummary(state: GameState) {
     Column {
         Spacer(modifier = Modifier.height(10.dp))
@@ -3151,6 +3312,106 @@ private fun LastSessionSummary(state: GameState) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SessionJournal(history: List<SessionRecord>) {
+    Column {
+        Spacer(modifier = Modifier.height(10.dp))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = CoralBlue.copy(alpha = 0.08f),
+            border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.28f))
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Jurnal de căpitan",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        sessionJournalTrendLabel(history),
+                        color = CoralBlue,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.End
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                history.take(3).forEachIndexed { index, record ->
+                    SessionJournalRow(index = index, record = record)
+                    if (index < history.take(3).lastIndex) {
+                        Spacer(modifier = Modifier.height(5.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SessionJournalRow(index: Int, record: SessionRecord) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Surface(
+            modifier = Modifier.size(28.dp),
+            shape = CircleShape,
+            color = if (index == 0) StarGold.copy(alpha = 0.24f) else Color.White.copy(alpha = 0.08f),
+            border = BorderStroke(1.dp, if (index == 0) StarGold.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.16f))
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    (index + 1).toString(),
+                    color = if (index == 0) StarGold else TextSandy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+        }
+        Text(
+            "${record.minutes}m",
+            color = TextSandy,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.width(32.dp)
+        )
+        LinearProgressIndicator(
+            progress = { record.accuracy / 100f },
+            modifier = Modifier
+                .weight(1f)
+                .height(7.dp)
+                .clip(RoundedCornerShape(50)),
+            color = if (record.accuracy >= 85) EmeraldGreen else if (record.accuracy < 70) RubyRed else StarGold,
+            trackColor = Color.White.copy(alpha = 0.12f),
+            strokeCap = StrokeCap.Round
+        )
+        Text(
+            "${record.accuracy}%",
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Black,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(34.dp)
+        )
+        Text(
+            "L${record.difficulty}",
+            color = TextSandy,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(24.dp)
+        )
     }
 }
 

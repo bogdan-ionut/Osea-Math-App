@@ -91,4 +91,48 @@ class GreetingScreenshotTest {
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/subtraction_stage.png")
   }
+
+  @Test
+  fun parent_dash_journal_screenshot() {
+    val state = GameState(
+      correctTotal = 9,
+      attemptsTotal = 11,
+      repairRounds = 1,
+      difficultyLevel = 3,
+      sessionSecondsElapsed = 11 * 60,
+      sessionSecondsTotal = 15 * 60,
+      lastSessionMinutes = 12,
+      lastSessionAccuracy = 86,
+      lastSessionRepairs = 1,
+      additionCorrect = 7,
+      additionAttempts = 8,
+      subtractionCorrect = 2,
+      subtractionAttempts = 3,
+      sessionHistory = listOf(
+        SessionRecord(dayIndex = 102, minutes = 12, accuracy = 86, repairs = 1, coins = 12, difficulty = 3),
+        SessionRecord(dayIndex = 101, minutes = 10, accuracy = 76, repairs = 2, coins = 8, difficulty = 2),
+        SessionRecord(dayIndex = 100, minutes = 9, accuracy = 72, repairs = 2, coins = 8, difficulty = 2)
+      )
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          ParentInsightStrip(
+            state = state,
+            onDailyTargetSelected = {},
+            onSessionMinutesSelected = {},
+            onMaxDifficultySelected = {}
+          )
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/parent_dash_journal.png")
+  }
 }

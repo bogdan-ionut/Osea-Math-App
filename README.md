@@ -25,6 +25,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - sumar pentru părinte: minute, acuratețe, focus și nivel
 - progres local persistent: comori totale, sesiuni completate și record personal
 - streak zilnic și ultimul raport de sesiune salvate local pentru Parent Dash
+- `Jurnal de căpitan` în Parent Dash cu ultimele sesiuni, trend de acuratețe și nivelul atins
 - setări părinte persistente, pliate în Parent Dash, pentru țintă zilnică, minute de sesiune și challenge maxim
 - colecție de recompense deblocată treptat, ca Oséa să revină la propria aventură
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
@@ -43,6 +44,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale
 - `Parent Dash` cu semnal de potrivire a dificultății, după logica din PDF: peste 95% poate fi prea ușor, sub 70% intră suportul
 - `Guess Guard` în Parent Dash: scor de eficiență inspirat de controlul de calitate/waste din PDF, bazat pe acuratețe, reparații și greșeli consecutive
+- `Următorul pas` în Parent Dash: recomandare scurtă pentru sesiunea următoare, bazată pe eficiență și skill gaps
 - `Learning Plan` cu metrici separate pentru Adunare și Scădere, ca skill gaps să fie vizibile rapid
 
 Vezi `docs/premium-learning-plan.md` pentru principiile de produs și următoarele milestone-uri.

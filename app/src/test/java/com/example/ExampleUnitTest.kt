@@ -41,6 +41,66 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun sessionJournalPrependsAndKeepsRecentRecords() {
+        val oldHistory = listOf(
+            SessionRecord(dayIndex = 10, minutes = 12, accuracy = 80, repairs = 1, coins = 8, difficulty = 2),
+            SessionRecord(dayIndex = 9, minutes = 10, accuracy = 70, repairs = 2, coins = 8, difficulty = 2)
+        )
+        val newest = SessionRecord(dayIndex = 11, minutes = 13, accuracy = 90, repairs = 0, coins = 12, difficulty = 3)
+        val history = appendSessionRecord(history = oldHistory, record = newest, limit = 2)
+
+        assertEquals(listOf(newest, oldHistory.first()), history)
+        assertEquals("În urcare", sessionJournalTrendLabel(history))
+        assertEquals("Prima urmă", sessionJournalTrendLabel(listOf(newest)))
+        assertEquals(
+            "De sprijinit",
+            sessionJournalTrendLabel(
+                listOf(
+                    SessionRecord(dayIndex = 12, minutes = 10, accuracy = 62, repairs = 2, coins = 8, difficulty = 2),
+                    newest
+                )
+            )
+        )
+    }
+
+    @Test
+    fun parentNextStepHighlightsTheMostUsefulLearningAction() {
+        assertEquals(
+            "Mâine: 8 comori, nivel ușor și numărare ghidată, ca să reducem ghicitul.",
+            parentNextStepFor(
+                additionCorrect = 4,
+                additionAttempts = 6,
+                subtractionCorrect = 2,
+                subtractionAttempts = 4,
+                efficiencyScore = 62,
+                difficultyLevel = 3
+            )
+        )
+        assertEquals(
+            "Mâine: introdu 3 scăderi scurte cu mutare în cufăr.",
+            parentNextStepFor(
+                additionCorrect = 5,
+                additionAttempts = 5,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0,
+                efficiencyScore = 92,
+                difficultyLevel = 3
+            )
+        )
+        assertEquals(
+            "Mâine: scăderi pe punte, mută în cufăr înainte de răspuns.",
+            parentNextStepFor(
+                additionCorrect = 5,
+                additionAttempts = 5,
+                subtractionCorrect = 2,
+                subtractionAttempts = 4,
+                efficiencyScore = 85,
+                difficultyLevel = 4
+            )
+        )
+    }
+
+    @Test
     fun dailyRingProgressIsClampedAndSafe() {
         assertEquals(0f, dailyRingProgress(current = 5, total = 0), 0.001f)
         assertEquals(0f, dailyRingProgress(current = -2, total = 10), 0.001f)
