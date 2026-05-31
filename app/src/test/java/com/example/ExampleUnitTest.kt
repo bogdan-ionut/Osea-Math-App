@@ -49,6 +49,29 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun adventureMapTracksActiveIslandAndSegmentProgress() {
+        assertEquals(0, activeLearningIslandIndexFor(correctTotal = 0))
+        assertEquals(2, coinsToActiveLearningIsland(correctTotal = 0))
+        assertEquals(0f, activeLearningIslandSegmentProgress(correctTotal = 0), 0.001f)
+
+        assertEquals(0, activeLearningIslandIndexFor(correctTotal = 1))
+        assertEquals(1, coinsToActiveLearningIsland(correctTotal = 1))
+        assertEquals(0.5f, activeLearningIslandSegmentProgress(correctTotal = 1), 0.001f)
+
+        assertEquals(1, activeLearningIslandIndexFor(correctTotal = 2))
+        assertEquals(3, coinsToActiveLearningIsland(correctTotal = 2))
+        assertEquals(0f, activeLearningIslandSegmentProgress(correctTotal = 2), 0.001f)
+
+        assertEquals(1, activeLearningIslandIndexFor(correctTotal = 4))
+        assertEquals(1, coinsToActiveLearningIsland(correctTotal = 4))
+        assertEquals(0.666f, activeLearningIslandSegmentProgress(correctTotal = 4), 0.01f)
+
+        assertEquals(3, activeLearningIslandIndexFor(correctTotal = 20))
+        assertEquals(0, coinsToActiveLearningIsland(correctTotal = 20))
+        assertEquals(1f, activeLearningIslandSegmentProgress(correctTotal = 20), 0.001f)
+    }
+
+    @Test
     fun sessionTimeUpOnlyWhenTimeBoxEndsWithoutCelebration() {
         assertEquals(false, sessionTimeUp(GameState(sessionSecondsElapsed = 9, sessionSecondsTotal = 10)))
         assertEquals(true, sessionTimeUp(GameState(sessionSecondsElapsed = 10, sessionSecondsTotal = 10)))
@@ -76,6 +99,23 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun subtractionTouchesStartFromTheDeckAndThenCountRemainders() {
+        val state = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals(5, remainingTouchesFor(state, countedCount = 0))
+        assertEquals(3, remainingTouchesFor(state, countedCount = 2))
+        assertEquals(false, answerButtonsUnlocked(state, countedCount = 4))
+        assertEquals(true, answerButtonsUnlocked(state, countedCount = 5))
+
+        assertEquals(0, subtractionMovedTouchesFor(state, countedCount = 0))
+        assertEquals(2, subtractionMovedTouchesFor(state, countedCount = 2))
+        assertEquals(2, subtractionMovedTouchesFor(state, countedCount = 5))
+        assertEquals(0, subtractionRemainingCountedFor(state, countedCount = 2))
+        assertEquals(1, subtractionRemainingCountedFor(state, countedCount = 3))
+        assertEquals(3, subtractionRemainingCountedFor(state, countedCount = 5))
+    }
+
+    @Test
     fun guidedCountingMovesLeftToRightAcrossVisibleObjects() {
         val state = GameState(num1 = 2, num2 = 1)
 
@@ -83,6 +123,17 @@ class ExampleUnitTest {
         assertEquals("left_1", nextGuidedItemId(state, setOf("left_0")))
         assertEquals("right_0", nextGuidedItemId(state, setOf("left_0", "left_1")))
         assertEquals(null, nextGuidedItemId(state, setOf("left_0", "left_1", "right_0")))
+    }
+
+    @Test
+    fun guidedSubtractionStaysOnTheDeckInsteadOfCountingASecondGroup() {
+        val state = GameState(num1 = 4, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals("left_0", nextGuidedItemId(state, emptySet()))
+        assertEquals("left_1", nextGuidedItemId(state, setOf("left_0")))
+        assertEquals("left_2", nextGuidedItemId(state, setOf("left_0", "left_1")))
+        assertEquals("left_3", nextGuidedItemId(state, setOf("left_0", "left_1", "left_2")))
+        assertEquals(null, nextGuidedItemId(state, setOf("left_0", "left_1", "left_2", "left_3")))
     }
 
     @Test
@@ -139,6 +190,23 @@ class ExampleUnitTest {
             val audioFile = File(rawDir, fileName)
             assertTrue("$fileName should exist in res/raw", audioFile.exists())
             assertTrue("$fileName should not be empty", audioFile.length() > 0)
+        }
+    }
+
+    @Test
+    fun expandedPirateCountingAssetsAreBundled() {
+        val drawableDir = File("src/main/res/drawable")
+        val expectedAssets = listOf(
+            "item_ship_wheel.png",
+            "item_gem_pouch.png",
+            "item_cannonballs.png",
+            "item_ship_lantern.png"
+        )
+
+        expectedAssets.forEach { fileName ->
+            val assetFile = File(drawableDir, fileName)
+            assertTrue("$fileName should exist in res/drawable", assetFile.exists())
+            assertTrue("$fileName should not be empty", assetFile.length() > 0)
         }
     }
 }

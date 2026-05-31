@@ -1,7 +1,16 @@
 package com.example
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -44,5 +53,42 @@ class GreetingScreenshotTest {
     }
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/session_break.png")
+  }
+
+  @Test
+  fun subtraction_stage_screenshot() {
+    val state = GameState(
+      num1 = 5,
+      num2 = 2,
+      operation = MathOperation.Subtraction,
+      difficultyLevel = 3
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        val countedItems = remember {
+          mutableStateMapOf(
+            "left_0" to 1,
+            "left_1" to 2,
+            "left_2" to 3
+          )
+        }
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          ProblemStage(
+            state = state,
+            countedItems = countedItems,
+            guidedItemId = nextGuidedItemId(state, countedItems.keys),
+            onItemTapped = {}
+          )
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/subtraction_stage.png")
   }
 }

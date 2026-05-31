@@ -142,7 +142,11 @@ private val treasureItems = listOf(
     PirateItem("lunetă", "lunete", "de căpitan", Color(0xFFFFCA28), TreasureShape.Spyglass, R.drawable.item_spyglass),
     PirateItem("busolă", "busole", "de navigator", Color(0xFFFFB74D), TreasureShape.Compass, R.drawable.item_compass),
     PirateItem("ancoră", "ancore", "de pe punte", Color(0xFFB0BEC5), TreasureShape.Anchor, R.drawable.item_anchor),
-    PirateItem("lopată", "lopeți", "pentru comori", Color(0xFFFFCC80), TreasureShape.Key, R.drawable.item_shovel)
+    PirateItem("lopată", "lopeți", "pentru comori", Color(0xFFFFCC80), TreasureShape.Key, R.drawable.item_shovel),
+    PirateItem("cârmă", "cârme", "de corabie", Color(0xFFD7A64A), TreasureShape.Compass, R.drawable.item_ship_wheel),
+    PirateItem("săculeț", "săculeți", "cu nestemate", Color(0xFFE57373), TreasureShape.Gem, R.drawable.item_gem_pouch),
+    PirateItem("ghiulea", "ghiulele", "de tun vechi", Color(0xFFB0BEC5), TreasureShape.Coin, R.drawable.item_cannonballs),
+    PirateItem("felinar", "felinare", "de corabie", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern)
 )
 
 private val learningIslands = listOf(
@@ -151,6 +155,25 @@ private val learningIslands = listOf(
     LearningIsland("Insula Scăderii", "rămân până la 10", 8, Color(0xFFFF8A65), "10"),
     LearningIsland("Comoara Mastery", "răspunsuri sigure", 12, Color(0xFF81C784), "★")
 )
+
+fun activeLearningIslandIndexFor(correctTotal: Int): Int {
+    val nextIslandIndex = learningIslands.indexOfFirst { correctTotal < it.targetCoins }
+    return if (nextIslandIndex == -1) learningIslands.lastIndex else nextIslandIndex
+}
+
+fun coinsToActiveLearningIsland(correctTotal: Int): Int {
+    val island = learningIslands[activeLearningIslandIndexFor(correctTotal)]
+    return (island.targetCoins - correctTotal).coerceAtLeast(0)
+}
+
+fun activeLearningIslandSegmentProgress(correctTotal: Int): Float {
+    val islandIndex = activeLearningIslandIndexFor(correctTotal)
+    val previousTarget = if (islandIndex == 0) 0 else learningIslands[islandIndex - 1].targetCoins
+    val target = learningIslands[islandIndex].targetCoins
+    val distance = (target - previousTarget).coerceAtLeast(1)
+
+    return ((correctTotal - previousTarget).toFloat() / distance.toFloat()).coerceIn(0f, 1f)
+}
 
 private val rewardDefinitions = listOf(
     RewardDefinition("Monedă", "prima pradă", R.drawable.item_gold_coin, StarGold),
@@ -173,7 +196,11 @@ private fun correctAnswerFor(state: GameState): Int {
 }
 
 private fun visibleObjectCountFor(state: GameState): Int {
-    return state.num1 + state.num2
+    return if (state.operation == MathOperation.Subtraction) {
+        state.num1
+    } else {
+        state.num1 + state.num2
+    }
 }
 
 fun remainingTouchesFor(state: GameState, countedCount: Int): Int {
@@ -196,10 +223,28 @@ fun movedToChestCountFor(state: GameState): Int {
     return if (state.operation == MathOperation.Subtraction) state.num2 else 0
 }
 
+fun subtractionMovedTouchesFor(state: GameState, countedCount: Int): Int {
+    return if (state.operation == MathOperation.Subtraction) {
+        countedCount.coerceIn(0, state.num2)
+    } else {
+        0
+    }
+}
+
+fun subtractionRemainingCountedFor(state: GameState, countedCount: Int): Int {
+    return if (state.operation == MathOperation.Subtraction) {
+        (countedCount - state.num2).coerceIn(0, correctAnswerFor(state))
+    } else {
+        countedCount
+    }
+}
+
 fun nextGuidedItemId(state: GameState, countedItemIds: Set<String>): String? {
     val orderedIds = buildList {
         repeat(state.num1) { index -> add("left_$index") }
-        repeat(state.num2) { index -> add("right_$index") }
+        if (state.operation == MathOperation.Addition) {
+            repeat(state.num2) { index -> add("right_$index") }
+        }
     }
     return orderedIds.firstOrNull { it !in countedItemIds }
 }
@@ -229,7 +274,12 @@ private fun buildCoachNarration(state: GameState, countedCount: Int): String {
             if (state.operation == MathOperation.Addition) {
                 "Reparăm împreună. Avem $leftGroup și $rightGroup. Atinge fiecare obiect din nou, de la unu până la $visibleItems."
             } else {
-                "Reparăm împreună. Pornim cu $leftGroup și dăm deoparte $rightGroup. Atinge obiectele din nou."
+                val movedCount = subtractionMovedTouchesFor(state, countedCount)
+                if (movedCount < state.num2) {
+                    "Reparăm împreună. Pornim cu $leftGroup și mutăm ${state.num2} în cufăr. Caută comoara luminoasă și dă-o deoparte."
+                } else {
+                    "Bun. Am mutat ${state.num2} în cufăr. Acum numărăm doar comorile rămase pe punte."
+                }
             }
         }
         state.selectedWrongAnswer != null -> {
@@ -244,7 +294,13 @@ private fun buildCoachNarration(state: GameState, countedCount: Int): String {
             if (state.operation == MathOperation.Addition) {
                 "Căpitane Osea, avem $leftGroup și $rightGroup. Caută comoara luminoasă pentru numărul $nextNumber. Ai numărat $countedCount din $visibleItems."
             } else {
-                "Căpitane Osea, pornim cu $leftGroup și dăm deoparte $rightGroup. Caută comoara luminoasă pentru numărul $nextNumber."
+                val movedCount = subtractionMovedTouchesFor(state, countedCount)
+                val remainingCounted = subtractionRemainingCountedFor(state, countedCount)
+                if (movedCount < state.num2) {
+                    "Căpitane Osea, pornim cu $leftGroup. Mutăm ${state.num2} în cufăr. Ai mutat $movedCount din ${state.num2}."
+                } else {
+                    "Acum scădem. Cele din cufăr nu se mai numără. Ai numărat $remainingCounted comori rămase pe punte."
+                }
             }
         }
         else -> {
@@ -1024,6 +1080,11 @@ private fun PremiumHero(state: GameState) {
 
 @Composable
 private fun LearningJourney(correctTotal: Int, dailyTarget: Int) {
+    val activeIslandIndex = activeLearningIslandIndexFor(correctTotal)
+    val activeIsland = learningIslands[activeIslandIndex]
+    val coinsToActiveIsland = coinsToActiveLearningIsland(correctTotal)
+    val segmentProgress = activeLearningIslandSegmentProgress(correctTotal)
+
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = Color(0xFF082B38).copy(alpha = 0.82f),
@@ -1049,15 +1110,11 @@ private fun LearningJourney(correctTotal: Int, dailyTarget: Int) {
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
-            LinearProgressIndicator(
-                progress = { (correctTotal.toFloat() / dailyTarget.toFloat()).coerceIn(0f, 1f) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                color = StarGold,
-                trackColor = Color.White.copy(alpha = 0.12f),
-                strokeCap = StrokeCap.Round
+            VoyageMissionStrip(
+                activeIsland = activeIsland,
+                coinsToActiveIsland = coinsToActiveIsland,
+                segmentProgress = segmentProgress,
+                dailyProgress = dailyRingProgress(current = correctTotal, total = dailyTarget)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(
@@ -1065,14 +1122,111 @@ private fun LearningJourney(correctTotal: Int, dailyTarget: Int) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                learningIslands.forEach { island ->
+                learningIslands.forEachIndexed { index, island ->
                     val reached = correctTotal >= island.targetCoins
                     IslandNode(
                         island = island,
                         reached = reached,
+                        active = index == activeIslandIndex,
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoyageMissionStrip(
+    activeIsland: LearningIsland,
+    coinsToActiveIsland: Int,
+    segmentProgress: Float,
+    dailyProgress: Float
+) {
+    val missionLabel = if (coinsToActiveIsland == 0) {
+        "Insulă cucerită"
+    } else {
+        "Mai ai $coinsToActiveIsland ${if (coinsToActiveIsland == 1) "comoară" else "comori"}"
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = activeIsland.color.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, activeIsland.color.copy(alpha = 0.45f))
+    ) {
+        Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(44.dp),
+                shape = CircleShape,
+                color = activeIsland.color,
+                border = BorderStroke(2.dp, Color.White.copy(alpha = 0.74f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        activeIsland.icon,
+                        color = OceanBg,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Misiune pe hartă",
+                    color = TextSandy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    activeIsland.title,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 16.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { segmentProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = activeIsland.color,
+                    trackColor = Color.White.copy(alpha = 0.14f),
+                    strokeCap = StrokeCap.Round
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = { dailyProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = StarGold,
+                    trackColor = Color.White.copy(alpha = 0.08f),
+                    strokeCap = StrokeCap.Round
+                )
+            }
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color.Black.copy(alpha = 0.18f),
+                border = BorderStroke(1.dp, activeIsland.color.copy(alpha = 0.46f))
+            ) {
+                Text(
+                    missionLabel,
+                    modifier = Modifier
+                        .width(72.dp)
+                        .padding(horizontal = 8.dp, vertical = 7.dp),
+                    color = if (coinsToActiveIsland == 0) EmeraldGreen else StarGold,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 12.sp
+                )
             }
         }
     }
@@ -1198,11 +1352,16 @@ private fun RewardBadge(
 private fun IslandNode(
     island: LearningIsland,
     reached: Boolean,
+    active: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         val scale by animateFloatAsState(
-            targetValue = if (reached) 1.08f else 1f,
+            targetValue = when {
+                active -> 1.12f
+                reached -> 1.06f
+                else -> 1f
+            },
             animationSpec = spring(dampingRatio = 0.62f, stiffness = 320f),
             label = "islandScale"
         )
@@ -1211,13 +1370,27 @@ private fun IslandNode(
                 .scale(scale)
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(if (reached) island.color else Color.White.copy(alpha = 0.12f))
-                .border(2.dp, Color.White.copy(alpha = if (reached) 0.78f else 0.2f), CircleShape),
+                .background(
+                    when {
+                        active -> island.color
+                        reached -> island.color.copy(alpha = 0.74f)
+                        else -> Color.White.copy(alpha = 0.12f)
+                    }
+                )
+                .border(
+                    2.dp,
+                    when {
+                        active -> StarGold
+                        reached -> Color.White.copy(alpha = 0.78f)
+                        else -> Color.White.copy(alpha = 0.2f)
+                    },
+                    CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = island.icon,
-                color = if (reached) OceanBg else Color.White.copy(alpha = 0.7f),
+                color = if (active || reached) OceanBg else Color.White.copy(alpha = 0.7f),
                 fontWeight = FontWeight.Black,
                 fontSize = 16.sp
             )
@@ -1225,15 +1398,15 @@ private fun IslandNode(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = island.title,
-            color = Color.White.copy(alpha = if (reached) 0.96f else 0.62f),
+            color = Color.White.copy(alpha = if (active || reached) 0.96f else 0.62f),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             lineHeight = 11.sp
         )
         Text(
-            text = island.focus,
-            color = Color.White.copy(alpha = if (reached) 0.7f else 0.42f),
+            text = if (active && !reached) "misiune acum" else island.focus,
+            color = Color.White.copy(alpha = if (active || reached) 0.7f else 0.42f),
             fontSize = 8.sp,
             textAlign = TextAlign.Center,
             lineHeight = 9.sp
@@ -1319,7 +1492,7 @@ private fun DailyRing(
 }
 
 @Composable
-private fun ProblemStage(
+internal fun ProblemStage(
     state: GameState,
     countedItems: Map<String, Int>,
     guidedItemId: String?,
@@ -1352,7 +1525,7 @@ private fun ProblemStage(
                 text = if (state.operation == MathOperation.Addition) {
                     "Atinge comoara luminoasă ca să apară ordinea numărării."
                 } else {
-                    "Atinge comorile de pe punte și pe cele puse în cufăr."
+                    "Mută comorile în cufăr, apoi numără doar ce rămâne pe punte."
                 },
                 color = TextSandy.copy(alpha = 0.78f),
                 fontSize = 13.sp,
@@ -1360,32 +1533,39 @@ private fun ProblemStage(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TreasureGroup(
-                    count = state.num1,
-                    item = state.item1,
-                    groupId = "left",
-                    overrideTitle = if (state.operation == MathOperation.Subtraction) "pe punte" else null,
+            if (state.operation == MathOperation.Subtraction) {
+                SubtractionActionStage(
+                    state = state,
                     countedItems = countedItems,
                     guidedItemId = guidedItemId,
-                    onItemTapped = onItemTapped,
-                    modifier = Modifier.weight(1f)
+                    onItemTapped = onItemTapped
                 )
-                OperatorBadge(state.operation.symbol)
-                TreasureGroup(
-                    count = state.num2,
-                    item = state.item2,
-                    groupId = "right",
-                    overrideTitle = if (state.operation == MathOperation.Subtraction) "în cufăr" else null,
-                    countedItems = countedItems,
-                    guidedItemId = guidedItemId,
-                    onItemTapped = onItemTapped,
-                    modifier = Modifier.weight(1f)
-                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TreasureGroup(
+                        count = state.num1,
+                        item = state.item1,
+                        groupId = "left",
+                        countedItems = countedItems,
+                        guidedItemId = guidedItemId,
+                        onItemTapped = onItemTapped,
+                        modifier = Modifier.weight(1f)
+                    )
+                    OperatorBadge(state.operation.symbol)
+                    TreasureGroup(
+                        count = state.num2,
+                        item = state.item2,
+                        groupId = "right",
+                        countedItems = countedItems,
+                        guidedItemId = guidedItemId,
+                        onItemTapped = onItemTapped,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(14.dp))
             Surface(
@@ -1405,6 +1585,144 @@ private fun ProblemStage(
             AnimatedVisibility(visible = answerButtonsUnlocked(state, countedItems.size)) {
                 ResultPreviewCard(state = state)
             }
+        }
+    }
+}
+
+@Composable
+private fun SubtractionActionStage(
+    state: GameState,
+    countedItems: Map<String, Int>,
+    guidedItemId: String?,
+    onItemTapped: (String) -> Unit
+) {
+    val movedCount = subtractionMovedTouchesFor(state, countedItems.size)
+    val remainingCounted = subtractionRemainingCountedFor(state, countedItems.size)
+    val answer = correctAnswerFor(state)
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            TreasureGroup(
+                count = state.num1,
+                item = state.item1,
+                groupId = "left",
+                overrideTitle = "pe punte",
+                overrideDescription = "${state.num1} la start",
+                countedItems = countedItems,
+                guidedItemId = guidedItemId,
+                onItemTapped = onItemTapped,
+                subtractionTakeAwayCount = state.num2,
+                wideLayout = true,
+                modifier = Modifier.weight(1.35f)
+            )
+            SubtractionChestProgress(
+                state = state,
+                movedCount = movedCount,
+                remainingCounted = remainingCounted,
+                answer = answer,
+                modifier = Modifier.weight(0.75f)
+            )
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SubtractionStepPill(
+                label = "În cufăr",
+                value = "$movedCount/${state.num2}",
+                color = StarGold,
+                modifier = Modifier.weight(1f)
+            )
+            SubtractionStepPill(
+                label = "Rămân",
+                value = "$remainingCounted/$answer",
+                color = EmeraldGreen,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SubtractionChestProgress(
+    state: GameState,
+    movedCount: Int,
+    remainingCounted: Int,
+    answer: Int,
+    modifier: Modifier = Modifier
+) {
+    val readyToCountRemainder = movedCount >= state.num2
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
+        color = StarGold.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, StarGold.copy(alpha = 0.42f))
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            OperatorBadge("-")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "cufăr",
+                color = StarGold,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "$movedCount/${state.num2} mutate",
+                color = TextSandy,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            MiniResultObjects(count = movedCount, item = state.item1)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (readyToCountRemainder) {
+                    "$remainingCounted/$answer rămase"
+                } else {
+                    "mutăm întâi"
+                },
+                color = if (readyToCountRemainder) EmeraldGreen else StarGold,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun SubtractionStepPill(
+    label: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.11f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.36f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -1565,9 +1883,12 @@ private fun TreasureGroup(
     item: PirateItem,
     groupId: String,
     overrideTitle: String? = null,
+    overrideDescription: String? = null,
     countedItems: Map<String, Int>,
     guidedItemId: String?,
     onItemTapped: (String) -> Unit,
+    subtractionTakeAwayCount: Int = 0,
+    wideLayout: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -1588,7 +1909,7 @@ private fun TreasureGroup(
                 textAlign = TextAlign.Center
             )
             Text(
-                text = item.description,
+                text = overrideDescription ?: item.description,
                 color = TextSandy.copy(alpha = 0.74f),
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
@@ -1600,7 +1921,9 @@ private fun TreasureGroup(
                 groupId = groupId,
                 countedItems = countedItems,
                 guidedItemId = guidedItemId,
-                onItemTapped = onItemTapped
+                onItemTapped = onItemTapped,
+                subtractionTakeAwayCount = subtractionTakeAwayCount,
+                wideLayout = wideLayout
             )
         }
     }
@@ -1627,17 +1950,25 @@ private fun InteractiveItemGrid(
     groupId: String,
     countedItems: Map<String, Int>,
     guidedItemId: String?,
-    onItemTapped: (String) -> Unit
+    onItemTapped: (String) -> Unit,
+    subtractionTakeAwayCount: Int = 0,
+    wideLayout: Boolean = false
 ) {
     val columns = when {
+        wideLayout && count <= 4 -> 2
+        wideLayout && count <= 9 -> 3
+        wideLayout -> 4
         count <= 4 -> 2
-        count <= 9 -> 3
+        count <= 8 -> 3
         else -> 4
     }
     val itemSize = when {
-        count <= 4 -> 50.dp
-        count <= 8 -> 36.dp
-        else -> 32.dp
+        wideLayout && count <= 4 -> 66.dp
+        wideLayout && count <= 8 -> 52.dp
+        wideLayout -> 44.dp
+        count <= 4 -> 56.dp
+        count <= 8 -> 38.dp
+        else -> 34.dp
     }
     val rows = (count + columns - 1) / columns
 
@@ -1648,11 +1979,27 @@ private fun InteractiveItemGrid(
                 val end = minOf(start + columns, count)
                 for (index in start until end) {
                     val itemId = "${groupId}_$index"
+                    val countedOrder = countedItems[itemId]
+                    val nextOrder = if (itemId == guidedItemId) countedItems.size + 1 else null
+                    val isTakenAway = subtractionTakeAwayCount > 0 &&
+                        countedOrder != null &&
+                        countedOrder <= subtractionTakeAwayCount
+                    val isGuidedTakeAway = subtractionTakeAwayCount > 0 &&
+                        nextOrder != null &&
+                        nextOrder <= subtractionTakeAwayCount
+                    val remainingCountedNumber = countedOrder
+                        ?.takeIf { subtractionTakeAwayCount == 0 || it > subtractionTakeAwayCount }
+                        ?.let { it - subtractionTakeAwayCount }
+                    val remainingNextNumber = nextOrder
+                        ?.takeIf { subtractionTakeAwayCount == 0 || it > subtractionTakeAwayCount }
+                        ?.let { it - subtractionTakeAwayCount }
                     PirateItemView(
                         item = item,
                         accentColor = item.color,
-                        countedNumber = countedItems[itemId],
-                        nextCountNumber = if (itemId == guidedItemId) countedItems.size + 1 else null,
+                        countedNumber = remainingCountedNumber,
+                        nextCountNumber = remainingNextNumber,
+                        isTakenAway = isTakenAway,
+                        isGuidedTakeAway = isGuidedTakeAway,
                         size = itemSize,
                         bubbleSize = if (itemSize > 48.dp) 22.dp else 18.dp,
                         onClick = { onItemTapped(itemId) }
@@ -1669,22 +2016,26 @@ private fun PirateItemView(
     accentColor: Color,
     countedNumber: Int?,
     nextCountNumber: Int?,
+    isTakenAway: Boolean,
+    isGuidedTakeAway: Boolean,
     size: Dp,
     bubbleSize: Dp,
     onClick: () -> Unit
 ) {
     val isGuidedNext = nextCountNumber != null && countedNumber == null
+    val isActiveGuide = isGuidedNext || isGuidedTakeAway
     val scale by animateFloatAsState(
         targetValue = when {
             countedNumber != null -> 1.12f
-            isGuidedNext -> 1.08f
+            isTakenAway -> 0.92f
+            isActiveGuide -> 1.08f
             else -> 1f
         },
         animationSpec = spring(dampingRatio = 0.55f, stiffness = 340f),
         label = "treasureScale"
     )
     val guideAlpha by animateFloatAsState(
-        targetValue = if (isGuidedNext) 1f else 0f,
+        targetValue = if (isActiveGuide) 1f else 0f,
         animationSpec = spring(dampingRatio = 0.58f, stiffness = 260f),
         label = "guideAlpha"
     )
@@ -1698,16 +2049,23 @@ private fun PirateItemView(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color.White.copy(alpha = if (isGuidedNext) 0.34f else 0.24f),
-                        if (isGuidedNext) StarGold.copy(alpha = 0.22f) else accentColor.copy(alpha = 0.18f)
+                        Color.White.copy(alpha = if (isActiveGuide) 0.34f else 0.24f),
+                        when {
+                            isGuidedTakeAway -> RubyRed.copy(alpha = 0.26f)
+                            isGuidedNext -> StarGold.copy(alpha = 0.22f)
+                            isTakenAway -> RubyRed.copy(alpha = 0.14f)
+                            else -> accentColor.copy(alpha = 0.18f)
+                        }
                     )
                 )
             )
             .border(
-                width = if (isGuidedNext) 3.dp else 2.dp,
+                width = if (isActiveGuide) 3.dp else 2.dp,
                 color = when {
                     countedNumber != null -> StarGold
+                    isGuidedTakeAway -> RubyRed.copy(alpha = 0.92f)
                     isGuidedNext -> StarGold.copy(alpha = 0.92f)
+                    isTakenAway -> RubyRed.copy(alpha = 0.58f)
                     else -> Color.White.copy(alpha = 0.14f)
                 },
                 shape = RoundedCornerShape(18.dp)
@@ -1715,7 +2073,7 @@ private fun PirateItemView(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        if (isGuidedNext) {
+        if (isActiveGuide) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1731,7 +2089,8 @@ private fun PirateItemView(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(if (isGuidedNext) 4.dp else 6.dp)
+                    .padding(if (isActiveGuide) 4.dp else 6.dp)
+                    .alpha(if (isTakenAway) 0.42f else 1f)
             )
         } else {
             TreasureIllustration(
@@ -1740,9 +2099,10 @@ private fun PirateItemView(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(8.dp)
+                    .alpha(if (isTakenAway) 0.42f else 1f)
             )
         }
-        if (isGuidedNext) {
+        if (isGuidedNext || isGuidedTakeAway) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1753,14 +2113,38 @@ private fun PirateItemView(
                     modifier = Modifier
                         .size(bubbleSize)
                         .clip(CircleShape)
-                        .background(CoralBlue)
+                        .background(if (isGuidedTakeAway) RubyRed else CoralBlue)
                         .border(1.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = nextCountNumber.toString(),
+                        text = if (isGuidedTakeAway) "-1" else nextCountNumber.toString(),
                         color = Color.White,
                         fontSize = (bubbleSize.value * 0.48f).sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+        }
+        if (isTakenAway) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(2.dp),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(bubbleSize)
+                        .clip(CircleShape)
+                        .background(RubyRed)
+                        .border(1.dp, Color.White, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "-1",
+                        color = Color.White,
+                        fontSize = (bubbleSize.value * 0.42f).sp,
                         fontWeight = FontWeight.Black
                     )
                 }
@@ -1983,7 +2367,11 @@ private fun CoachPanel(
                 ListenButton(onClick = onSpeak)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            CountingTrail(countedCount = countedCount, totalItems = totalItems)
+            CountingTrail(
+                countedCount = countedCount,
+                totalItems = totalItems,
+                subtractionTakeAwayCount = if (state.operation == MathOperation.Subtraction) state.num2 else 0
+            )
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 text = when {
@@ -1992,15 +2380,31 @@ private fun CoachPanel(
                         if (state.operation == MathOperation.Addition) {
                             "Reparăm: numără din nou, de la 1 până la $totalItems."
                         } else {
-                            "Reparăm: atinge comorile de pe punte și cele puse în cufăr."
+                            val movedCount = subtractionMovedTouchesFor(state, countedCount)
+                            if (movedCount < state.num2) {
+                                "Reparăm: mută întâi ${state.num2} comori în cufăr. Atinge comoara cu -1."
+                            } else {
+                                "Reparăm: acum numără doar comorile rămase pe punte."
+                            }
                         }
                     }
                     state.selectedWrongAnswer != null -> {
                         "Gata, ai refăcut numărarea. Alege răspunsul corect."
                     }
                     countedCount < totalItems -> {
-                        val noun = if (remainingTouches == 1) "comoară" else "comori"
-                        "Numărate: $countedCount din $totalItems. Comoara luminoasă este numărul $nextCountNumber. Atinge-o ca să continui. Mai ai $remainingTouches $noun."
+                        if (state.operation == MathOperation.Subtraction) {
+                            val movedCount = subtractionMovedTouchesFor(state, countedCount)
+                            val remainingCounted = subtractionRemainingCountedFor(state, countedCount)
+                            val answer = correctAnswerFor(state)
+                            if (movedCount < state.num2) {
+                                "Scădem: $movedCount din ${state.num2} sunt în cufăr. Atinge comoara luminoasă cu -1."
+                            } else {
+                                "Acum rămân pe punte: $remainingCounted din $answer. Atinge comoara luminoasă ca să numeri ce a rămas."
+                            }
+                        } else {
+                            val noun = if (remainingTouches == 1) "comoară" else "comori"
+                            "Numărate: $countedCount din $totalItems. Comoara luminoasă este numărul $nextCountNumber. Atinge-o ca să continui. Mai ai $remainingTouches $noun."
+                        }
                     }
                     else -> if (state.operation == MathOperation.Addition) {
                         "Toate sunt numărate. Acum răspunsul e ultimul număr pe care îl vezi."
@@ -2225,7 +2629,11 @@ private fun RepairStepChip(
 }
 
 @Composable
-private fun CountingTrail(countedCount: Int, totalItems: Int) {
+private fun CountingTrail(
+    countedCount: Int,
+    totalItems: Int,
+    subtractionTakeAwayCount: Int = 0
+) {
     val dotSize = if (totalItems <= 6) 30.dp else 24.dp
     val numberSize = if (totalItems <= 6) 13.sp else 10.sp
 
@@ -2236,12 +2644,18 @@ private fun CountingTrail(countedCount: Int, totalItems: Int) {
     ) {
         for (index in 1..totalItems) {
             val isCounted = index <= countedCount
+            val isTakeAway = subtractionTakeAwayCount > 0 && index <= subtractionTakeAwayCount
+            val fillColor = when {
+                isCounted && isTakeAway -> RubyRed
+                isCounted -> StarGold
+                else -> Color.White.copy(alpha = 0.12f)
+            }
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(dotSize)
                     .clip(RoundedCornerShape(50))
-                    .background(if (isCounted) StarGold else Color.White.copy(alpha = 0.12f))
+                    .background(fillColor)
                     .border(
                         1.dp,
                         if (isCounted) Color.White.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.16f),
@@ -2250,8 +2664,12 @@ private fun CountingTrail(countedCount: Int, totalItems: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = index.toString(),
-                    color = if (isCounted) OceanBg else Color.White.copy(alpha = 0.55f),
+                    text = if (isTakeAway) "-1" else (index - subtractionTakeAwayCount).toString(),
+                    color = when {
+                        isCounted && isTakeAway -> Color.White
+                        isCounted -> OceanBg
+                        else -> Color.White.copy(alpha = 0.55f)
+                    },
                     fontSize = numberSize,
                     fontWeight = FontWeight.Black
                 )

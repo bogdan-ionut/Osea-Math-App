@@ -7,7 +7,7 @@
 - Sesiuni scurte și concentrate: aplicația folosește un inel de sesiune de 25 de minute, aliniat cu structura din white paper.
 - Pauză după time-box: când timpul sesiunii se termină, jocul oprește răspunsurile și afișează un ecran calm de pauză cu sumar.
 - Daily Rings la începutul sesiunii: copilul vede imediat timpul, ținta zilei și siguranța răspunsurilor înainte de exercițiu.
-- Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic.
+- Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic, cu insula activă și comorile rămase până la următorul port.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
 - Challenge adaptiv: trei răspunsuri corecte activează `Speed bump`; două greșeli activează `Struggle support` și scad dificultatea.
@@ -19,7 +19,7 @@
 - Guess Guard pentru părinte: Parent Dash include un scor de eficiență inspirat de semnalul de quality control/waste din PDF, dar formulat blând pentru vârsta lui Oséa.
 - Sprijin pentru vârstă mică: fiecare problemă este concretă, atinsă cu degetul și numărabilă înainte de alegerea răspunsului numeric.
 - Rezultat concret după numărare: aplicația afișează `Total sigur` sau `Rămân pe punte` doar după ce toate obiectele au fost atinse.
-- Scădere concretă: rezultatul separă vizual comorile care rămân pe punte de comorile mutate în cufăr, ca minusul să fie o acțiune fizică.
+- Scădere concretă: copilul pornește cu obiectele de pe punte, mută primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
@@ -35,11 +35,11 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 2. Daily Rings îi arată din primul ecran timpul, ținta de azi și siguranța.
 3. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
 4. Aplicația oferă un set mic de răspunsuri.
-5. Răspunsurile corecte umplu ținta zilnică și duc harta înainte.
+5. Răspunsurile corecte umplu ținta zilnică și duc harta înainte, segment cu segment, spre următorul port.
 6. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
 7. Răspunsurile greșite activează coaching calm, nu pedeapsă.
 8. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
-9. După primele niveluri, apar scăderi concrete: comori de pe punte minus comori puse în cufăr.
+9. După primele niveluri, apar scăderi concrete: copilul mută comori de pe punte în cufăr și apoi numără ce a rămas.
 10. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
 11. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
 12. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
@@ -64,7 +64,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 
 - `img_osea_cove_background.png`: fundal ilustrat nou, generat cu skill-ul `imagegen`, salvat local în `app/src/main/res/drawable`.
 - Prompt folosit: scenă marină premium pentru joc educațional Android, fără text sau UI, cu zonă centrală calmă pentru componentele aplicației.
-- Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră și lopată.
+- Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră, lopată, cârmă de corabie, săculeț cu nestemate, ghiulele și felinar.
 - Fiecare obiect a fost generat pe chroma-key și convertit local în PNG transparent, salvat ca `item_*.png` în `app/src/main/res/drawable`.
 - Recompensele din `Colecția lui Oséa` refolosesc aceleași asset-uri premium pentru monedă, hartă, lunetă, busolă, ancoră și cufăr, cu stare vizuală blocată/deblocată.
 - Launcher icon-ul folosește o compoziție locală din corabie, cufăr și monedă, cu fundal oceanic, pentru ca APK-ul instalat să nu mai apară cu icon generic.
@@ -85,11 +85,13 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: streak-ul zilnic are test unitar pentru zile consecutive, aceeași zi și pauze între sesiuni.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
 - QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
+- QA tehnic: interacțiunea de scădere are test unitar pentru mutarea în cufăr și numărarea restului, fără al doilea grup numărat ca adunare.
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
+- QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.
 - QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.

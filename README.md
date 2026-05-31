@@ -16,6 +16,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - ecran de pauză la finalul time-box-ului, ca sesiunea să nu curgă la nesfârșit
 - Daily Rings vizibile imediat sus: timp, ținta de azi și siguranța răspunsurilor
 - progres vizual prin `Harta Mastery`
+- misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu
 - scădere concretă introdusă adaptiv după primele niveluri de adunare
@@ -28,11 +29,13 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - colecție de recompense deblocată treptat, ca Oséa să revină la propria aventură
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
 - obiecte numărabile generate ca PNG-uri premium: corăbii, cufere, bănuți, tunuri, săbii, hărți, lunete, busole, ancore și lopeți de comoară
+- set nou de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele și felinar
 - launcher icon nou, aliniat cu tema de aventură pe mare: corabie, cufăr și monedă
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă
 - după numărare completă, jocul arată vizual `Total sigur` sau `Rămân pe punte`, ca sensul operației să fie concret
 - la scădere, rezultatul separă vizual comorile care rămân pe punte de cele mutate în cufăr
+- la scădere, copilul mută efectiv primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte
 - feedback haptic discret la atingerea obiectelor și la alegerea răspunsului, ca bucla să se simtă mai tactilă pe Android
 - ghid vizual pentru următorul obiect de atins, cu contur luminos și numărul pasului următor
 - numărarea avansează doar când este atins obiectul luminat, ca să reducă tapping-ul la întâmplare
