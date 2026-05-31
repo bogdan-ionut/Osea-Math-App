@@ -7,6 +7,7 @@
 - Sesiuni scurte și concentrate: aplicația folosește un inel de sesiune de 25 de minute, aliniat cu structura din white paper.
 - Pauză după time-box: când timpul sesiunii se termină, jocul oprește răspunsurile și afișează un ecran calm de pauză cu sumar.
 - Daily Rings la începutul sesiunii: copilul vede imediat timpul, ținta zilei și siguranța răspunsurilor înainte de exercițiu.
+- Focus Mastery pe rundă: ecranul arată explicit dacă runda antrenează adunare mică, minus concret, reparare sau sprijin, fără să ceară citire lungă.
 - Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic, cu insula activă și comorile rămase până la următorul port.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
@@ -35,25 +36,26 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 
 1. Oséa vede o misiune și atinge fiecare obiect pentru a număra.
 2. Daily Rings îi arată din primul ecran timpul, ținta de azi și siguranța.
-3. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
-4. Aplicația oferă un set mic de răspunsuri.
-5. Răspunsurile corecte umplu ținta zilnică și duc harta înainte, segment cu segment, spre următorul port.
-6. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
-7. Răspunsurile greșite activează coaching calm, nu pedeapsă.
-8. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
-9. După primele niveluri, apar scăderi concrete: copilul mută comori de pe punte în cufăr și apoi numără ce a rămas.
-10. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
-11. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
-12. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
-13. Următoarea problemă se adaptează la streak, la setarea maximă a părintelui și la skill gap-ul dintre adunare/scădere.
-14. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
-15. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
-16. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
-17. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
-18. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
-19. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
-20. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
-21. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
+3. Focus Mastery îi arată pe scurt ce antrenează runda: adunare, minus, reparare sau sprijin.
+4. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
+5. Aplicația oferă un set mic de răspunsuri.
+6. Răspunsurile corecte umplu ținta zilnică și duc harta înainte, segment cu segment, spre următorul port.
+7. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
+8. Răspunsurile greșite activează coaching calm, nu pedeapsă.
+9. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
+10. După primele niveluri, apar scăderi concrete: copilul mută comori de pe punte în cufăr și apoi numără ce a rămas.
+11. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
+12. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
+13. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
+14. Următoarea problemă se adaptează la streak, la setarea maximă a părintelui și la skill gap-ul dintre adunare/scădere.
+15. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
+16. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
+17. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
+18. Learning Plan arată separat dacă adunarea sau scăderea are nevoie de lucru.
+19. Parent Dash arată `Guess Guard`, ca părintele să vadă rapid dacă eficiența scade prin reparații sau greșeli consecutive.
+20. Parent Dash oferă `Următorul pas`, o recomandare scurtă pentru sesiunea următoare.
+21. Părintele poate ajusta sesiunea: 8/12/16 comori, 10/15/25 minute și challenge ușor/minus/full.
+22. Progresul rămâne salvat local, astfel încât următoarea sesiune pornește cu aceeași colecție și același istoric.
 
 ## Următoarele Milestone-uri Premium
 
@@ -90,6 +92,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: `Jurnalul de căpitan` are test unitar pentru ordonarea sesiunilor, limitarea istoricului și eticheta de trend.
 - QA tehnic: recomandarea `Următorul pas` are test unitar pentru risc de ghicit, introducerea scăderii și gap pe scădere.
 - QA tehnic: selectorul adaptiv de operații are test unitar pentru protejarea adunării, introducerea scăderii, respectarea limitei părintelui și repararea gap-ului pe minus.
+- QA tehnic: `Focus Mastery` are test unitar pentru adunare mică, minus concret, reparare și sprijin.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
 - QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
 - QA tehnic: interacțiunea de scădere are test unitar pentru mutarea în cufăr și numărarea restului, fără al doilea grup numărat ca adunare.

@@ -141,6 +141,11 @@ data class SessionRecord(
     val difficulty: Int
 )
 
+data class RoundFocus(
+    val title: String,
+    val goal: String
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -418,6 +423,35 @@ fun selectAdaptiveOperationForNextGame(
     if (subtractionAttempts >= 3 && subtractionAccuracy < 75) return MathOperation.Subtraction
 
     return if (correctTotal % 3 == 2) MathOperation.Subtraction else MathOperation.Addition
+}
+
+fun roundFocusFor(state: GameState): RoundFocus {
+    return when {
+        state.selectedWrongAnswer != null -> RoundFocus(
+            title = "Reparare calmă",
+            goal = "Refacem numărarea și alegem numai după ce toate comorile sunt clare."
+        )
+        state.struggleSupportActive -> RoundFocus(
+            title = "Sprijin pe punte",
+            goal = "Runda rămâne mică, cu obiectul luminos care conduce fiecare pas."
+        )
+        state.speedBumpActive -> RoundFocus(
+            title = "Speed bump",
+            goal = "Creștem puțin nivelul doar pentru răspunsuri sigure, nu pentru viteză."
+        )
+        state.operation == MathOperation.Subtraction -> RoundFocus(
+            title = "Minus concret",
+            goal = "Mutăm în cufăr, apoi numărăm doar comorile rămase pe punte."
+        )
+        correctAnswerFor(state) <= 5 -> RoundFocus(
+            title = "Adunare până la 5",
+            goal = "Unim două grupuri mici și citim ultimul număr atins."
+        )
+        else -> RoundFocus(
+            title = "Adunare sigură",
+            goal = "Ținem ordinea numărării până când răspunsul se deblochează."
+        )
+    }
 }
 
 fun dailyRingProgress(current: Int, total: Int): Float {
@@ -1112,6 +1146,8 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                 ) {
                     PremiumHero(state = state)
                     Spacer(modifier = Modifier.height(10.dp))
+                    MasteryFocusStrip(state = state)
+                    Spacer(modifier = Modifier.height(10.dp))
                     DashboardHeader(state = state)
                     Spacer(modifier = Modifier.height(10.dp))
                     LearningJourney(correctTotal = state.correctTotal, dailyTarget = state.dailyTarget)
@@ -1233,6 +1269,76 @@ private fun PremiumHero(state: GameState) {
                     state.difficultyLevel.toString(),
                     color = Color.White,
                     fontSize = 28.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MasteryFocusStrip(state: GameState) {
+    val focus = roundFocusFor(state)
+    val focusColor = when {
+        state.selectedWrongAnswer != null -> RubyRed
+        state.struggleSupportActive -> CoralBlue
+        state.speedBumpActive -> StarGold
+        state.operation == MathOperation.Subtraction -> StarGold
+        else -> EmeraldGreen
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = focusColor.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, focusColor.copy(alpha = 0.4f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(34.dp),
+                shape = CircleShape,
+                color = focusColor.copy(alpha = 0.22f),
+                border = BorderStroke(1.dp, focusColor.copy(alpha = 0.58f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        if (state.operation == MathOperation.Subtraction) "-" else "+",
+                        color = focusColor,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    focus.title,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    focus.goal,
+                    color = TextSandy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 13.sp
+                )
+            }
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Black.copy(alpha = 0.16f),
+                border = BorderStroke(1.dp, focusColor.copy(alpha = 0.34f))
+            ) {
+                Text(
+                    "Focus",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    color = focusColor,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Black
                 )
             }

@@ -200,6 +200,32 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun roundFocusExplainsTheCurrentMasteryGoal() {
+        assertEquals(
+            RoundFocus(
+                title = "Adunare până la 5",
+                goal = "Unim două grupuri mici și citim ultimul număr atins."
+            ),
+            roundFocusFor(GameState(num1 = 2, num2 = 3, operation = MathOperation.Addition))
+        )
+        assertEquals(
+            RoundFocus(
+                title = "Minus concret",
+                goal = "Mutăm în cufăr, apoi numărăm doar comorile rămase pe punte."
+            ),
+            roundFocusFor(GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction))
+        )
+        assertEquals(
+            "Reparare calmă",
+            roundFocusFor(GameState(selectedWrongAnswer = 3)).title
+        )
+        assertEquals(
+            "Sprijin pe punte",
+            roundFocusFor(GameState(struggleSupportActive = true)).title
+        )
+    }
+
+    @Test
     fun dailyRingProgressIsClampedAndSafe() {
         assertEquals(0f, dailyRingProgress(current = 5, total = 0), 0.001f)
         assertEquals(0f, dailyRingProgress(current = -2, total = 10), 0.001f)

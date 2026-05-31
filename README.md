@@ -15,6 +15,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - sesiune concentrată de 25 de minute
 - ecran de pauză la finalul time-box-ului, ca sesiunea să nu curgă la nesfârșit
 - Daily Rings vizibile imediat sus: timp, ținta de azi și siguranța răspunsurilor
+- `Focus Mastery` pe fiecare rundă, ca Oséa și părintele să vadă ce abilitate se antrenează chiar acum
 - progres vizual prin `Harta Mastery`
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
