@@ -24,6 +24,19 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun countingAdventureProgressTracksTouches() {
+        val addition = GameState(num1 = 2, num2 = 2, operation = MathOperation.Addition)
+        val subtraction = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals(0.5f, countingAdventureProgressFor(addition, countedCount = 2), 0.001f)
+        assertEquals(1f, countingAdventureProgressFor(addition, countedCount = 8), 0.001f)
+        assertEquals("Săpăm spre comoară", countingAdventureLabelFor(addition, countedCount = 1))
+        assertEquals("Mutăm spre cufăr", countingAdventureLabelFor(subtraction, countedCount = 1))
+        assertEquals("Numărăm ce rămâne", countingAdventureLabelFor(subtraction, countedCount = 3))
+        assertEquals("Comoara e pregătită", countingAdventureLabelFor(addition, countedCount = 4))
+    }
+
+    @Test
     fun voyageSurprisesAndChestPileStayBounded() {
         assertEquals(0, visibleChestCoinCountFor(0))
         assertEquals(3, visibleChestCoinCountFor(5))

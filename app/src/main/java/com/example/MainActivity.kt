@@ -480,6 +480,21 @@ fun remainingTouchesFor(state: GameState, countedCount: Int): Int {
     return (visibleObjectCountFor(state) - countedCount).coerceAtLeast(0)
 }
 
+fun countingAdventureProgressFor(state: GameState, countedCount: Int): Float {
+    val totalItems = visibleObjectCountFor(state).coerceAtLeast(1)
+    return (countedCount.toFloat() / totalItems.toFloat()).coerceIn(0f, 1f)
+}
+
+fun countingAdventureLabelFor(state: GameState, countedCount: Int): String {
+    val remaining = remainingTouchesFor(state, countedCount)
+    return when {
+        remaining == 0 -> "Comoara e pregătită"
+        state.operation == MathOperation.Subtraction && countedCount < state.num2 -> "Mutăm spre cufăr"
+        state.operation == MathOperation.Subtraction -> "Numărăm ce rămâne"
+        else -> "Săpăm spre comoară"
+    }
+}
+
 fun answerButtonsUnlocked(state: GameState, countedCount: Int): Boolean {
     return remainingTouchesFor(state, countedCount) == 0
 }
@@ -3099,6 +3114,8 @@ internal fun ProblemStage(
             )
             Spacer(modifier = Modifier.height(10.dp))
             RoundStepCueStrip(cue = roundStepCueFor(state, countedItems.size))
+            Spacer(modifier = Modifier.height(10.dp))
+            CountingAdventureStrip(state = state, countedCount = countedItems.size)
             Spacer(modifier = Modifier.height(14.dp))
             if (state.operation == MathOperation.Subtraction) {
                 SubtractionActionStage(
@@ -3337,6 +3354,108 @@ private fun RoundStepCueStrip(cue: RoundStepCue) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 15.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountingAdventureStrip(
+    state: GameState,
+    countedCount: Int
+) {
+    val progress = countingAdventureProgressFor(state, countedCount)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = spring(dampingRatio = 0.65f, stiffness = 190f),
+        label = "countingAdventureProgress"
+    )
+    val remaining = remainingTouchesFor(state, countedCount)
+    val status = if (remaining == 0) {
+        "răspunsul e deblocat"
+    } else {
+        "$remaining ${if (remaining == 1) "atingere" else "atingeri"} rămase"
+    }
+    val accent = if (remaining == 0) EmeraldGreen else StarGold
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = accent.copy(alpha = 0.11f),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.36f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = countingAdventureLabelFor(state, countedCount),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = status,
+                    color = accent,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.End
+                )
+            }
+            Spacer(modifier = Modifier.height(7.dp))
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp)
+            ) {
+                val travelWidth = (maxWidth - 86.dp).coerceAtLeast(48.dp)
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val y = size.height * 0.58f
+                    val startX = 34f
+                    val endX = size.width - 46f
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.16f),
+                        start = Offset(startX, y),
+                        end = Offset(endX, y),
+                        strokeWidth = 10f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = accent.copy(alpha = 0.82f),
+                        start = Offset(startX, y),
+                        end = Offset(startX + (endX - startX) * animatedProgress, y),
+                        strokeWidth = 5f,
+                        cap = StrokeCap.Round
+                    )
+                    repeat(5) { index ->
+                        val t = index / 4f
+                        drawCircle(
+                            color = Color.White.copy(alpha = if (t <= animatedProgress) 0.62f else 0.24f),
+                            radius = 2.6f,
+                            center = Offset(startX + (endX - startX) * t, y)
+                        )
+                    }
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.item_shovel),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(34.dp)
+                        .align(Alignment.TopStart)
+                        .offset(x = 6.dp + travelWidth * animatedProgress, y = 1.dp)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.item_treasure_chest),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .align(Alignment.TopEnd)
+                        .alpha(if (remaining == 0) 1f else 0.58f)
                 )
             }
         }

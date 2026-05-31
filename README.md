@@ -46,6 +46,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă
 - după numărare completă, jocul arată vizual `Total sigur` sau `Rămân pe punte`, ca sensul operației să fie concret
+- în timpul numărării, o bandă de aventură mută lopata spre cufăr și arată câte atingeri mai lipsesc
 - răspunsurile numerice arată ca mici cufere de joc, cu monede, sparkle și feedback vizual pentru corect/greșit
 - la scădere, rezultatul separă vizual comorile care rămân pe punte de cele mutate în cufăr
 - la scădere, copilul mută efectiv primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte
