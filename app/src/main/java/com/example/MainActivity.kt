@@ -396,6 +396,30 @@ fun parentNextStepFor(
     }
 }
 
+fun selectAdaptiveOperationForNextGame(
+    difficultyLevel: Int,
+    maxDifficulty: Int,
+    correctTotal: Int,
+    consecutiveWrong: Int,
+    additionCorrect: Int,
+    additionAttempts: Int,
+    subtractionCorrect: Int,
+    subtractionAttempts: Int
+): MathOperation {
+    if (maxDifficulty < 3 || difficultyLevel < 3) return MathOperation.Addition
+    if (consecutiveWrong > 0) return MathOperation.Addition
+
+    val additionAccuracy = skillAccuracy(correct = additionCorrect, attempts = additionAttempts)
+    if (additionAttempts < 3 || additionAccuracy < 80) return MathOperation.Addition
+
+    if (subtractionAttempts < 2) return MathOperation.Subtraction
+
+    val subtractionAccuracy = skillAccuracy(correct = subtractionCorrect, attempts = subtractionAttempts)
+    if (subtractionAttempts >= 3 && subtractionAccuracy < 75) return MathOperation.Subtraction
+
+    return if (correctTotal % 3 == 2) MathOperation.Subtraction else MathOperation.Addition
+}
+
 fun dailyRingProgress(current: Int, total: Int): Float {
     return if (total <= 0) 0f else (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
 }
@@ -634,7 +658,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun nextQuestion() {
         _uiState.update { current ->
-            generateGame(current.difficultyLevel).copy(
+            generateGame(current.difficultyLevel, current).copy(
                 streak = current.streak,
                 correctTotal = current.correctTotal,
                 attemptsTotal = current.attemptsTotal,
@@ -668,7 +692,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun playAgain() {
         _uiState.update { current ->
-            generateGame(1).copy(
+            generateGame(1, current).copy(
                 lifetimeCoins = current.lifetimeCoins,
                 completedSessions = current.completedSessions,
                 bestStreak = current.bestStreak,
@@ -691,7 +715,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startFreshSession() {
         _uiState.update { current ->
-            generateGame(1).copy(
+            generateGame(1, current).copy(
                 lifetimeCoins = current.lifetimeCoins,
                 completedSessions = current.completedSessions,
                 bestStreak = current.bestStreak,
@@ -741,7 +765,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun generateGame(difficulty: Int): GameState {
+    private fun generateGame(difficulty: Int, sourceState: GameState? = null): GameState {
         val range = when (difficulty) {
             1 -> 2..4
             2 -> 3..5
@@ -749,10 +773,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             4 -> 6..10
             else -> 8..12
         }
-        val operation = if (difficulty >= 3 && (0..2).random() == 0) {
-            MathOperation.Subtraction
-        } else {
+        val operation = if (sourceState == null) {
             MathOperation.Addition
+        } else {
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = difficulty,
+                maxDifficulty = sourceState.maxDifficulty,
+                correctTotal = sourceState.correctTotal,
+                consecutiveWrong = sourceState.consecutiveWrong,
+                additionCorrect = sourceState.additionCorrect,
+                additionAttempts = sourceState.additionAttempts,
+                subtractionCorrect = sourceState.subtractionCorrect,
+                subtractionAttempts = sourceState.subtractionAttempts
+            )
         }
         val num1: Int
         val num2: Int
@@ -793,8 +826,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             item2 = rightItem,
             options = options.toList().shuffled(),
             difficultyLevel = difficulty,
-            missionTitle = nextMissionMessage(difficulty)
+            missionTitle = nextMissionMessage(difficulty, operation)
         )
+    }
+
+    private fun nextMissionMessage(difficulty: Int, operation: MathOperation): String {
+        return if (operation == MathOperation.Subtraction) {
+            "Misiune de minus: mutăm comori în cufăr."
+        } else {
+            nextMissionMessage(difficulty)
+        }
     }
 
     private fun nextMissionMessage(difficulty: Int): String {

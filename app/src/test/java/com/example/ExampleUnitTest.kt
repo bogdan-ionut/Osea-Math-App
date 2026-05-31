@@ -101,6 +101,105 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun adaptiveOperationSelectorProtectsMasteryBeforeSubtraction() {
+        assertEquals(
+            MathOperation.Addition,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 4,
+                maxDifficulty = 2,
+                correctTotal = 8,
+                consecutiveWrong = 0,
+                additionCorrect = 8,
+                additionAttempts = 8,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0
+            )
+        )
+        assertEquals(
+            MathOperation.Addition,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 3,
+                maxDifficulty = 5,
+                correctTotal = 3,
+                consecutiveWrong = 0,
+                additionCorrect = 2,
+                additionAttempts = 2,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0
+            )
+        )
+        assertEquals(
+            MathOperation.Addition,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 3,
+                maxDifficulty = 5,
+                correctTotal = 5,
+                consecutiveWrong = 1,
+                additionCorrect = 5,
+                additionAttempts = 5,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0
+            )
+        )
+    }
+
+    @Test
+    fun adaptiveOperationSelectorIntroducesAndRepairsSubtraction() {
+        assertEquals(
+            MathOperation.Subtraction,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 3,
+                maxDifficulty = 5,
+                correctTotal = 5,
+                consecutiveWrong = 0,
+                additionCorrect = 5,
+                additionAttempts = 5,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0
+            )
+        )
+        assertEquals(
+            MathOperation.Subtraction,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 4,
+                maxDifficulty = 5,
+                correctTotal = 9,
+                consecutiveWrong = 0,
+                additionCorrect = 8,
+                additionAttempts = 9,
+                subtractionCorrect = 2,
+                subtractionAttempts = 4
+            )
+        )
+        assertEquals(
+            MathOperation.Subtraction,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 4,
+                maxDifficulty = 5,
+                correctTotal = 8,
+                consecutiveWrong = 0,
+                additionCorrect = 8,
+                additionAttempts = 9,
+                subtractionCorrect = 4,
+                subtractionAttempts = 4
+            )
+        )
+        assertEquals(
+            MathOperation.Addition,
+            selectAdaptiveOperationForNextGame(
+                difficultyLevel = 4,
+                maxDifficulty = 5,
+                correctTotal = 9,
+                consecutiveWrong = 0,
+                additionCorrect = 8,
+                additionAttempts = 9,
+                subtractionCorrect = 4,
+                subtractionAttempts = 4
+            )
+        )
+    }
+
+    @Test
     fun dailyRingProgressIsClampedAndSafe() {
         assertEquals(0f, dailyRingProgress(current = 5, total = 0), 0.001f)
         assertEquals(0f, dailyRingProgress(current = -2, total = 10), 0.001f)

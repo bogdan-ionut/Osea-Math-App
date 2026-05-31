@@ -11,6 +11,7 @@
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
 - Challenge adaptiv: trei răspunsuri corecte activează `Speed bump`; două greșeli activează `Struggle support` și scad dificultatea.
+- Selector adaptiv de operații: minusul apare doar după semnale bune la adunare, respectă challenge-ul maxim al părintelui și revine intenționat când scăderea are acuratețe scăzută.
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
 - Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, streak-ul și colecția, apoi jocul continuă automat.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
@@ -44,7 +45,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 10. După numărare completă, copilul vede o confirmare concretă a rezultatului înainte să aleagă butonul numeric.
 11. Pentru scădere, confirmarea arată separat câte comori rămân pe punte și câte au plecat în cufăr.
 12. După o greșeală, aplicația blochează răspunsurile și cere recount complet, pentru a evita apăsările la întâmplare.
-13. Următoarea problemă se adaptează la streak și la semnalele de dificultate.
+13. Următoarea problemă se adaptează la streak, la setarea maximă a părintelui și la skill gap-ul dintre adunare/scădere.
 14. Dacă time-box-ul se termină înainte de ținta zilnică, apare `Pauză de punte`, iar răspunsurile nu mai pot fi apăsate.
 15. La final apare raportul de sesiune cu datele esențiale și o recomandare pentru următorul nivel.
 16. Parent Dash păstrează ultima sesiune, streak-ul zilnic și ultimele intrări din `Jurnalul de căpitan`, ca progresul să fie vizibil și după redeschiderea aplicației.
@@ -88,6 +89,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: streak-ul zilnic are test unitar pentru zile consecutive, aceeași zi și pauze între sesiuni.
 - QA tehnic: `Jurnalul de căpitan` are test unitar pentru ordonarea sesiunilor, limitarea istoricului și eticheta de trend.
 - QA tehnic: recomandarea `Următorul pas` are test unitar pentru risc de ghicit, introducerea scăderii și gap pe scădere.
+- QA tehnic: selectorul adaptiv de operații are test unitar pentru protejarea adunării, introducerea scăderii, respectarea limitei părintelui și repararea gap-ului pe minus.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.
 - QA tehnic: reprezentarea vizuală a scăderii are test unitar pentru comori rămase și comori mutate în cufăr.
 - QA tehnic: interacțiunea de scădere are test unitar pentru mutarea în cufăr și numărarea restului, fără al doilea grup numărat ca adunare.

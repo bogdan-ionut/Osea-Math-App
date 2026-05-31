@@ -19,6 +19,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu
+- motor adaptiv pentru următoarea problemă: adunarea trebuie să fie solidă înainte de minus, iar scăderea revine când apare skill gap
 - scădere concretă introdusă adaptiv după primele niveluri de adunare
 - încurajări audio offline
 - narațiune vocală on-device din butonul `Ascultă`, pentru copil pre-cititor
