@@ -101,6 +101,66 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun parentAuditSignalsSummarizeTimeQualityAndSkillGaps() {
+        val state = GameState(
+            correctTotal = 7,
+            attemptsTotal = 10,
+            repairRounds = 2,
+            consecutiveWrong = 1,
+            difficultyLevel = 3,
+            sessionSecondsElapsed = 9 * 60,
+            sessionSecondsTotal = 10 * 60,
+            additionCorrect = 5,
+            additionAttempts = 5,
+            subtractionCorrect = 1,
+            subtractionAttempts = 3
+        )
+        val signals = parentAuditSignalsFor(state)
+
+        assertEquals(3, signals.size)
+        assertEquals("Timp de lucru", signals[0].title)
+        assertEquals("9/10 min", signals[0].valueText)
+        assertEquals(0.9f, signals[0].progress, 0.001f)
+        assertEquals("Calitate", signals[1].title)
+        assertEquals("70%", signals[1].valueText)
+        assertEquals("Eficiență 42% · Risc de ghicit", signals[1].detail)
+        assertEquals("Skill gap", signals[2].title)
+        assertEquals("Scădere", signals[2].valueText)
+        assertEquals("Adunare 100% · Scădere 33%", signals[2].detail)
+    }
+
+    @Test
+    fun parentSkillGapCanBeBalancedOrCalibrating() {
+        assertEquals(
+            "Calibrare",
+            parentSkillGapLabelFor(
+                additionCorrect = 1,
+                additionAttempts = 1,
+                subtractionCorrect = 0,
+                subtractionAttempts = 0
+            )
+        )
+        assertEquals(
+            "Echilibrat",
+            parentSkillGapLabelFor(
+                additionCorrect = 4,
+                additionAttempts = 5,
+                subtractionCorrect = 3,
+                subtractionAttempts = 4
+            )
+        )
+        assertEquals(
+            "Adunare",
+            parentSkillGapLabelFor(
+                additionCorrect = 1,
+                additionAttempts = 4,
+                subtractionCorrect = 4,
+                subtractionAttempts = 4
+            )
+        )
+    }
+
+    @Test
     fun adaptiveOperationSelectorProtectsMasteryBeforeSubtraction() {
         assertEquals(
             MathOperation.Addition,

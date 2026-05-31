@@ -19,6 +19,7 @@
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
 - Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, streak-ul și colecția, apoi jocul continuă automat.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
+- Audit părinte: un rezumat 2HL separat combină timp de lucru, calitate/eficiență și skill gap într-un semnal ușor de citit.
 - Jurnal pentru părinte: ultimele sesiuni rămân salvate local, cu trend simplu de acuratețe și nivel, ca progresul să nu fie doar „ultima sesiune”.
 - Learning Plan pentru părinte: aplicația marchează dacă dificultatea pare potrivită, prea ușoară sau prea grea, folosind pragurile 95%/70% descrise în PDF.
 - Skill gaps vizibile: Parent Dash separă acuratețea pentru `Adunare` și `Scădere`, cu stare de calibrare până există suficiente încercări.
@@ -70,7 +71,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - Profil local persistent cu streak-uri zilnice, recompense deblocate și istoric pentru părinte.
 - Extinderea asset pack-ului cu animații ușoare și variante rare pentru recompensele vizuale de colecție.
 - Extinderea narațiunii vocale cu voci înregistrate custom pentru Osea, dacă TTS-ul device-ului nu e suficient de cald.
-- Ecran detaliat doar pentru părinte: istoric pe zile, skill gaps, timp de lucru și pași recomandați.
+- Ecran detaliat pentru părinte livrat în Parent Dash; următorul pas este export/istoric mai lung pe săptămâni.
 - Onboarding completat cu preset recomandat; următorul pas este personalizare mai fină după câteva sesiuni reale.
 
 ## Asset-uri Vizuale
@@ -96,6 +97,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
 - QA vizual Pixel 8: `Parent Dash` cu `Jurnal de căpitan` are captură Roborazzi dedicată pentru trend și recomandarea următorului pas.
+- QA vizual Pixel 8: `Audit părinte` este inclus în captura Parent Dash pentru timp, calitate și skill gap.
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
@@ -104,6 +106,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: streak-ul zilnic are test unitar pentru zile consecutive, aceeași zi și pauze între sesiuni.
 - QA tehnic: `Jurnalul de căpitan` are test unitar pentru ordonarea sesiunilor, limitarea istoricului și eticheta de trend.
 - QA tehnic: recomandarea `Următorul pas` are test unitar pentru risc de ghicit, introducerea scăderii și gap pe scădere.
+- QA tehnic: `Audit părinte` are teste unitare pentru timp, calitate/eficiență, skill gap, echilibru și calibrare.
 - QA tehnic: selectorul adaptiv de operații are test unitar pentru protejarea adunării, introducerea scăderii, respectarea limitei părintelui și repararea gap-ului pe minus.
 - QA tehnic: `Focus Mastery` are test unitar pentru adunare mică, minus concret, reparare și sprijin.
 - QA tehnic: calculul răspunsului are test unitar pentru adunare și scădere, iar scăderea folosește aceeași buclă de numărare/reparare.

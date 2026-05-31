@@ -180,6 +180,14 @@ data class CaptainQuest(
     val drawableRes: Int
 )
 
+data class ParentAuditSignal(
+    val title: String,
+    val valueText: String,
+    val detail: String,
+    val progress: Float,
+    val color: Color
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -643,6 +651,89 @@ fun parentNextStepFor(
         subtractionAttempts >= 3 && subtractionAccuracy < 75 -> "Mâine: scăderi pe punte, mută în cufăr înainte de răspuns."
         else -> "Mâine: păstrează sesiunea scurtă și lasă speed bump-ul să ridice nivelul."
     }
+}
+
+fun parentSkillGapLabelFor(
+    additionCorrect: Int,
+    additionAttempts: Int,
+    subtractionCorrect: Int,
+    subtractionAttempts: Int
+): String {
+    val additionReady = additionAttempts >= 3
+    val subtractionReady = subtractionAttempts >= 3
+    if (!additionReady && !subtractionReady) return "Calibrare"
+    if (!additionReady) return "Adunare"
+    if (!subtractionReady) return "Scădere"
+
+    val additionAccuracy = skillAccuracy(correct = additionCorrect, attempts = additionAttempts)
+    val subtractionAccuracy = skillAccuracy(correct = subtractionCorrect, attempts = subtractionAttempts)
+    return when {
+        additionAccuracy + 15 < subtractionAccuracy -> "Adunare"
+        subtractionAccuracy + 15 < additionAccuracy -> "Scădere"
+        else -> "Echilibrat"
+    }
+}
+
+fun parentAuditSignalsFor(state: GameState): List<ParentAuditSignal> {
+    val minutesUsed = state.sessionSecondsElapsed / 60
+    val minutesTotal = (state.sessionSecondsTotal / 60).coerceAtLeast(1)
+    val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal).coerceIn(0, 100)
+    val efficiencyScore = learningEfficiencyScore(
+        correct = state.correctTotal,
+        attempts = state.attemptsTotal,
+        repairRounds = state.repairRounds,
+        consecutiveWrong = state.consecutiveWrong
+    )
+    val skillGap = parentSkillGapLabelFor(
+        additionCorrect = state.additionCorrect,
+        additionAttempts = state.additionAttempts,
+        subtractionCorrect = state.subtractionCorrect,
+        subtractionAttempts = state.subtractionAttempts
+    )
+    val additionAccuracy = skillAccuracy(correct = state.additionCorrect, attempts = state.additionAttempts)
+    val subtractionAccuracy = skillAccuracy(correct = state.subtractionCorrect, attempts = state.subtractionAttempts)
+    val qualityColor = when {
+        state.attemptsTotal < 3 -> TextSandy
+        accuracy < 70 || efficiencyScore < 70 -> RubyRed
+        accuracy >= 95 && state.difficultyLevel <= 2 -> StarGold
+        else -> EmeraldGreen
+    }
+    val gapColor = when (skillGap) {
+        "Calibrare", "Echilibrat" -> EmeraldGreen
+        else -> StarGold
+    }
+
+    return listOf(
+        ParentAuditSignal(
+            title = "Timp de lucru",
+            valueText = "$minutesUsed/$minutesTotal min",
+            detail = if (minutesUsed >= minutesTotal) "Time-box complet." else "În ritmul ales la onboarding/Parent Dash.",
+            progress = dailyRingProgress(current = minutesUsed, total = minutesTotal),
+            color = CoralBlue
+        ),
+        ParentAuditSignal(
+            title = "Calitate",
+            valueText = "$accuracy%",
+            detail = "Eficiență $efficiencyScore% · ${learningEfficiencyLabel(score = efficiencyScore, attempts = state.attemptsTotal)}",
+            progress = dailyRingProgress(current = efficiencyScore, total = 100),
+            color = qualityColor
+        ),
+        ParentAuditSignal(
+            title = "Skill gap",
+            valueText = skillGap,
+            detail = if (skillGap == "Calibrare") {
+                "Mai trebuie semnal pe adunare și scădere."
+            } else {
+                "Adunare $additionAccuracy% · Scădere $subtractionAccuracy%"
+            },
+            progress = when (skillGap) {
+                "Calibrare" -> 0.18f
+                "Echilibrat" -> 1f
+                else -> 0.55f
+            },
+            color = gapColor
+        )
+    )
 }
 
 fun selectAdaptiveOperationForNextGame(
@@ -4081,6 +4172,8 @@ internal fun ParentInsightStrip(
             AnimatedVisibility(visible = state.sessionHistory.isNotEmpty()) {
                 SessionJournal(history = state.sessionHistory)
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            ParentAuditPanel(state = state)
             AnimatedVisibility(visible = showSessionSettings) {
                 Column {
                     Spacer(modifier = Modifier.height(10.dp))
@@ -4158,6 +4251,88 @@ internal fun ParentInsightStrip(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ParentAuditPanel(state: GameState) {
+    val signals = parentAuditSignalsFor(state)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.28f))
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Audit părinte",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = "2HL",
+                    color = CoralBlue,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            signals.forEachIndexed { index, signal ->
+                ParentAuditSignalRow(signal = signal)
+                if (index != signals.lastIndex) {
+                    Spacer(modifier = Modifier.height(7.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ParentAuditSignalRow(signal: ParentAuditSignal) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = signal.title,
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black
+            )
+            Text(
+                text = signal.valueText,
+                color = signal.color,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.End
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        LinearProgressIndicator(
+            progress = { signal.progress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(50)),
+            color = signal.color,
+            trackColor = Color.White.copy(alpha = 0.1f),
+            strokeCap = StrokeCap.Round
+        )
+        Text(
+            text = signal.detail,
+            color = TextSandy.copy(alpha = 0.76f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 12.sp
+        )
     }
 }
 
