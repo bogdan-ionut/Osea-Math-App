@@ -11,6 +11,7 @@
 - Misiuni zilnice pentru copil: un board compact transformă datele din sesiune în trei obiective vizuale: ținta de azi, siguranța și următoarea comoară.
 - Focus Mastery pe rundă: ecranul arată explicit dacă runda antrenează adunare mică, minus concret, reparare sau sprijin, fără să ceară citire lungă.
 - Progres vizual: noua `Harta Mastery` arată pași mici de învățare în locul unui scor generic, cu insula activă și comorile rămase până la următorul port.
+- Voiaj animat: harta include traseu desenat, corabie care înaintează după comori și mici surprize vizuale pe ruta spre comoară.
 - Daily completion check: ecranul de final rezumă minutele, acuratețea, reparările și comorile, astfel încât copilul și părintele văd rapid ce s-a întâmplat.
 - Goal setting pentru părinte: ținta zilnică, durata sesiunii și challenge-ul maxim pot fi ajustate dintr-o secțiune pliabilă în Parent Dash și rămân salvate local.
 - Challenge adaptiv: trei răspunsuri corecte activează `Speed bump`; două greșeli activează `Struggle support` și scad dificultatea.
@@ -35,6 +36,7 @@
 - Continuitate între zile: streak-ul zilnic, ultimul raport și `Jurnalul de căpitan` rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
 - Recompense cu țintă: colecția arată următorul obiect, câte comori lipsesc și raritatea lui, ca progresul să rămână motivant între runde.
+- Cufăr care se umple: colecția și micro-recompensa arată monede/nestemate intrând în cufăr, ca progresul să fie fizic și memorabil.
 
 ## Direcția Curentă A Produsului
 
@@ -46,7 +48,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 4. Focus Mastery îi arată pe scurt ce antrenează runda: adunare, minus, reparare sau sprijin.
 5. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
 6. Aplicația oferă un set mic de răspunsuri.
-7. Răspunsurile corecte umplu ținta zilnică și duc harta înainte, segment cu segment, spre următorul port.
+7. Răspunsurile corecte umplu ținta zilnică și duc corabia pe hartă, segment cu segment, spre următorul port.
 8. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
 9. Răspunsurile greșite activează coaching calm, nu pedeapsă.
 10. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
@@ -79,6 +81,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - `img_osea_cove_background.png`: fundal ilustrat nou, generat cu skill-ul `imagegen`, salvat local în `app/src/main/res/drawable`.
 - Prompt folosit: scenă marină premium pentru joc educațional Android, fără text sau UI, cu zonă centrală calmă pentru componentele aplicației.
 - Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră, lopată, cârmă de corabie, săculeț cu nestemate, ghiulele și felinar.
+- Variantele de joc refolosesc asset-urile premium pentru obiecte noi de numărat: pergament, chei, rubine, pumnale, inele și semnale cu felinarul.
 - Fiecare obiect a fost generat pe chroma-key și convertit local în PNG transparent, salvat ca `item_*.png` în `app/src/main/res/drawable`.
 - Recompensele din `Colecția lui Oséa` refolosesc aceleași asset-uri premium pentru monedă, hartă, lunetă, busolă, ancoră și cufăr, cu stare vizuală blocată/deblocată.
 - Reward Harbor folosește praguri explicite de comori și rarități vizuale (`Comun`, `Rar`, `Legendar`) pentru a păstra colecția ca obiectiv de aventură, nu doar ca listă de iconuri.
@@ -101,6 +104,8 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
 - QA vizual Pixel 8: micro-recompensa `Comoară +1` are captură Roborazzi dedicată pentru sparkle și progresul către următoarea comoară.
+- QA vizual Pixel 8: `Harta Mastery` are acum traseu, corabie animată și badge de surpriză în captura principală.
+- QA vizual Pixel 8: `Reward Harbor` și micro-recompensa arată cufărul care se umple cu monede/nestemate.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
@@ -125,6 +130,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.
+- QA tehnic: surprizele de voiaj și cufărul vizual au test unitar pentru rotație și limitarea obiectelor desenate.
 - QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.

@@ -20,6 +20,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - `Focus Mastery` pe fiecare rundă, ca Oséa și părintele să vadă ce abilitate se antrenează chiar acum
 - progres vizual prin `Harta Mastery`
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
+- hartă de voiaj cu traseu desenat, corabie animată și surprize vizuale pe drum spre comoară
 - `Speed bump` adaptiv după răspunsuri corecte consecutive
 - `Struggle support` când materialul devine prea greu
 - `Port sigur` după struggle detector: următoarea rundă revine intenționat la comori mici până la 4, pentru consolidarea bazei
@@ -38,7 +39,8 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - progres vizual către următoarea recompensă, cu praguri de comori și rarități `Comun`/`Rar`/`Legendar`
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
 - obiecte numărabile generate ca PNG-uri premium: corăbii, cufere, bănuți, tunuri, săbii, hărți, lunete, busole, ancore și lopeți de comoară
-- set nou de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele și felinar
+- set extins de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele, felinar, pergament, chei, rubine, pumnale și inele
+- cufăr vizual care se umple cu monede și nestemate pe măsură ce se strâng comori
 - launcher icon nou, aliniat cu tema de aventură pe mare: corabie, cufăr și monedă
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă

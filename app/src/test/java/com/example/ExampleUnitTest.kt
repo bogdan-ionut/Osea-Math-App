@@ -24,6 +24,15 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun voyageSurprisesAndChestPileStayBounded() {
+        assertEquals(0, visibleChestCoinCountFor(0))
+        assertEquals(3, visibleChestCoinCountFor(5))
+        assertEquals(9, visibleChestCoinCountFor(99))
+        assertEquals(voyageSurpriseFor(0), voyageSurpriseFor(1))
+        assertTrue(voyageSurpriseFor(4) != voyageSurpriseFor(0))
+    }
+
+    @Test
     fun skillAccuracyHandlesEmptyAndNormalSignals() {
         assertEquals(100, skillAccuracy(correct = 0, attempts = 0))
         assertEquals(75, skillAccuracy(correct = 3, attempts = 4))

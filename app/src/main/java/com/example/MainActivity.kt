@@ -19,12 +19,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -205,6 +207,13 @@ data class RewardBurstSummary(
     val progress: Float
 )
 
+data class VoyageSurprise(
+    val title: String,
+    val detail: String,
+    val drawableRes: Int,
+    val color: Color
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -219,7 +228,13 @@ private val treasureItems = listOf(
     PirateItem("cârmă", "cârme", "de corabie", Color(0xFFD7A64A), TreasureShape.Compass, R.drawable.item_ship_wheel),
     PirateItem("săculeț", "săculeți", "cu nestemate", Color(0xFFE57373), TreasureShape.Gem, R.drawable.item_gem_pouch),
     PirateItem("ghiulea", "ghiulele", "de tun vechi", Color(0xFFB0BEC5), TreasureShape.Coin, R.drawable.item_cannonballs),
-    PirateItem("felinar", "felinare", "de corabie", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern)
+    PirateItem("felinar", "felinare", "de corabie", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern),
+    PirateItem("pergament", "pergamente", "cu X ascuns", Color(0xFFFFE0A3), TreasureShape.Map, R.drawable.item_treasure_map),
+    PirateItem("cheie", "chei", "de cufăr vechi", Color(0xFFFFC857), TreasureShape.Key, R.drawable.item_treasure_chest),
+    PirateItem("rubin", "rubine", "sclipitoare", Color(0xFFFF6B8A), TreasureShape.Gem, R.drawable.item_gem_pouch),
+    PirateItem("pumnal", "pumnale", "de aventurier", Color(0xFF90CAF9), TreasureShape.Spyglass, R.drawable.item_cutlass),
+    PirateItem("inel", "inele", "din aur", Color(0xFFFFD54F), TreasureShape.Coin, R.drawable.item_gold_coin),
+    PirateItem("semnal", "semnale", "cu felinarul", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern)
 )
 
 private val learningIslands = listOf(
@@ -227,6 +242,15 @@ private val learningIslands = listOf(
     LearningIsland("Golful lui 5", "adunări până la 5", 5, Color(0xFFFFD54F), "5"),
     LearningIsland("Insula Scăderii", "rămân până la 10", 8, Color(0xFFFF8A65), "10"),
     LearningIsland("Comoara Mastery", "răspunsuri sigure", 12, Color(0xFF81C784), "★")
+)
+
+private val voyageSurprises = listOf(
+    VoyageSurprise("Hartă secretă", "un X apare pe pergament", R.drawable.item_treasure_map, Color(0xFFFFE082)),
+    VoyageSurprise("Lunetă rară", "zărești insula următoare", R.drawable.item_spyglass, Color(0xFF64B5F6)),
+    VoyageSurprise("Cufăr mic", "strălucește pe punte", R.drawable.item_treasure_chest, Color(0xFFFFB74D)),
+    VoyageSurprise("Busolă vie", "arată drumul corect", R.drawable.item_compass, Color(0xFFFFCA28)),
+    VoyageSurprise("Tun vechi", "salută victoria", R.drawable.item_cannon, Color(0xFFB0BEC5)),
+    VoyageSurprise("Săculeț de rubine", "cade în cufăr", R.drawable.item_gem_pouch, Color(0xFFE57373))
 )
 
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
@@ -326,6 +350,16 @@ fun rewardProgressToNextFor(lifetimeCoins: Int): Float {
         .maxOfOrNull { it.unlockCoins } ?: 0
     val span = (nextReward.unlockCoins - previousUnlock).coerceAtLeast(1)
     return ((lifetimeCoins - previousUnlock).toFloat() / span.toFloat()).coerceIn(0f, 1f)
+}
+
+fun voyageSurpriseFor(correctTotal: Int): VoyageSurprise {
+    val safeTotal = correctTotal.coerceAtLeast(0)
+    return voyageSurprises[(safeTotal / 2) % voyageSurprises.size]
+}
+
+fun visibleChestCoinCountFor(lifetimeCoins: Int): Int {
+    if (lifetimeCoins <= 0) return 0
+    return (lifetimeCoins / 2 + 1).coerceIn(1, 9)
 }
 
 fun rewardBurstSummaryFor(state: GameState): RewardBurstSummary {
@@ -2057,21 +2091,12 @@ private fun LearningJourney(correctTotal: Int, dailyTarget: Int) {
                 dailyProgress = dailyRingProgress(current = correctTotal, total = dailyTarget)
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                learningIslands.forEachIndexed { index, island ->
-                    val reached = correctTotal >= island.targetCoins
-                    IslandNode(
-                        island = island,
-                        reached = reached,
-                        active = index == activeIslandIndex,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+            TreasureVoyageMap(
+                correctTotal = correctTotal,
+                dailyTarget = dailyTarget,
+                activeIslandIndex = activeIslandIndex,
+                surprise = voyageSurpriseFor(correctTotal)
+            )
         }
     }
 }
@@ -2173,6 +2198,235 @@ private fun VoyageMissionStrip(
 }
 
 @Composable
+private fun TreasureVoyageMap(
+    correctTotal: Int,
+    dailyTarget: Int,
+    activeIslandIndex: Int,
+    surprise: VoyageSurprise
+) {
+    val targetProgress = dailyRingProgress(current = correctTotal, total = dailyTarget).coerceIn(0.04f, 1f)
+    val boatProgress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = spring(dampingRatio = 0.58f, stiffness = 110f),
+        label = "voyageBoatProgress"
+    )
+    val boatY = when {
+        boatProgress < 0.35f -> 64.dp - 22.dp * (boatProgress / 0.35f)
+        boatProgress < 0.7f -> 42.dp + 26.dp * ((boatProgress - 0.35f) / 0.35f)
+        else -> 68.dp - 34.dp * ((boatProgress - 0.7f) / 0.3f)
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(Color(0xFF123C3F))
+            .border(1.dp, StarGold.copy(alpha = 0.22f), RoundedCornerShape(22.dp))
+    ) {
+        val boatX = (maxWidth - 54.dp) * boatProgress
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRoundRect(
+                brush = Brush.linearGradient(
+                    listOf(
+                        Color(0xFF1E6D73),
+                        Color(0xFF104B59),
+                        Color(0xFF5E4325).copy(alpha = 0.82f)
+                    )
+                ),
+                size = size,
+                cornerRadius = CornerRadius(22.dp.toPx(), 22.dp.toPx())
+            )
+            val routePoints = listOf(
+                Offset(size.width * 0.08f, size.height * 0.72f),
+                Offset(size.width * 0.34f, size.height * 0.38f),
+                Offset(size.width * 0.62f, size.height * 0.64f),
+                Offset(size.width * 0.9f, size.height * 0.26f)
+            )
+            routePoints.zipWithNext().forEach { (start, end) ->
+                drawLine(
+                    color = Color.White.copy(alpha = 0.22f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 8f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.52f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
+                repeat(5) { step ->
+                    val t = (step + 1) / 6f
+                    drawCircle(
+                        color = Color.White.copy(alpha = 0.58f),
+                        radius = 2.8f,
+                        center = Offset(
+                            x = start.x + (end.x - start.x) * t,
+                            y = start.y + (end.y - start.y) * t
+                        )
+                    )
+                }
+            }
+            val islandPositions = listOf(0.08f to 0.72f, 0.34f to 0.38f, 0.62f to 0.64f, 0.9f to 0.26f)
+            islandPositions.forEachIndexed { index, (x, y) ->
+                val island = learningIslands[index]
+                val reached = correctTotal >= island.targetCoins
+                val active = index == activeIslandIndex
+                val center = Offset(size.width * x, size.height * y)
+                drawCircle(
+                    color = Color.Black.copy(alpha = 0.18f),
+                    radius = if (active) 25f else 21f,
+                    center = center + Offset(0f, 3f)
+                )
+                drawCircle(
+                    color = when {
+                        active -> island.color
+                        reached -> island.color.copy(alpha = 0.66f)
+                        else -> Color.White.copy(alpha = 0.18f)
+                    },
+                    radius = if (active) 22f else 18f,
+                    center = center
+                )
+                if (active) {
+                    drawCircle(
+                        color = StarGold.copy(alpha = 0.72f),
+                        radius = 27f,
+                        center = center,
+                        style = Stroke(width = 4f)
+                    )
+                }
+            }
+            val treasure = routePoints.last()
+            drawLine(
+                color = StarGold,
+                start = treasure + Offset(-10f, -10f),
+                end = treasure + Offset(10f, 10f),
+                strokeWidth = 4f,
+                cap = StrokeCap.Round
+            )
+            drawLine(
+                color = StarGold,
+                start = treasure + Offset(10f, -10f),
+                end = treasure + Offset(-10f, 10f),
+                strokeWidth = 4f,
+                cap = StrokeCap.Round
+            )
+        }
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            learningIslands.forEachIndexed { index, island ->
+                MapIslandMarker(
+                    island = island,
+                    reached = correctTotal >= island.targetCoins,
+                    active = index == activeIslandIndex
+                )
+            }
+        }
+        Image(
+            painter = painterResource(id = R.drawable.item_ship),
+            contentDescription = "Corabia lui Oséa",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(54.dp)
+                .offset(x = boatX, y = boatY)
+        )
+        VoyageSurpriseBadge(
+            surprise = surprise,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        )
+    }
+}
+
+@Composable
+private fun MapIslandMarker(
+    island: LearningIsland,
+    reached: Boolean,
+    active: Boolean
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (active) 1.12f else 1f,
+        animationSpec = spring(dampingRatio = 0.62f, stiffness = 320f),
+        label = "mapIslandMarkerScale"
+    )
+    Surface(
+        modifier = Modifier
+            .scale(scale)
+            .size(30.dp),
+        shape = CircleShape,
+        color = when {
+            active -> island.color
+            reached -> island.color.copy(alpha = 0.72f)
+            else -> Color.White.copy(alpha = 0.18f)
+        },
+        border = BorderStroke(
+            width = if (active) 2.dp else 1.dp,
+            color = if (active) StarGold else Color.White.copy(alpha = 0.36f)
+        )
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = island.icon,
+                color = if (active || reached) OceanBg else Color.White.copy(alpha = 0.7f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black
+            )
+        }
+    }
+}
+
+@Composable
+private fun VoyageSurpriseBadge(
+    surprise: VoyageSurprise,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.width(128.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.Black.copy(alpha = 0.22f),
+        border = BorderStroke(1.dp, surprise.color.copy(alpha = 0.52f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Image(
+                painter = painterResource(id = surprise.drawableRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(28.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = surprise.title,
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 10.sp
+                )
+                Text(
+                    text = surprise.detail,
+                    color = TextSandy.copy(alpha = 0.78f),
+                    fontSize = 7.sp,
+                    lineHeight = 8.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun RewardHarbor(state: GameState) {
     val unlockedRewards = unlockedRewardCountFor(state.lifetimeCoins)
     val nextReward = nextRewardDefinitionFor(state.lifetimeCoins)
@@ -2222,6 +2476,11 @@ internal fun RewardHarbor(state: GameState) {
                 nextReward = nextReward
             )
             Spacer(modifier = Modifier.height(12.dp))
+            TreasureChestMeter(
+                lifetimeCoins = state.lifetimeCoins,
+                bestStreak = state.bestStreak
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -2236,6 +2495,88 @@ internal fun RewardHarbor(state: GameState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TreasureChestMeter(
+    lifetimeCoins: Int,
+    bestStreak: Int
+) {
+    val visibleCoins = visibleChestCoinCountFor(lifetimeCoins)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = StarGold.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, StarGold.copy(alpha = 0.34f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            ChestTreasurePile(
+                lifetimeCoins = lifetimeCoins,
+                modifier = Modifier.size(width = 92.dp, height = 66.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Cufărul se umple",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = "$visibleCoins scântei vizibile · record $bestStreak",
+                    color = TextSandy.copy(alpha = 0.78f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { rewardProgressToNextFor(lifetimeCoins) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = StarGold,
+                    trackColor = Color.White.copy(alpha = 0.12f),
+                    strokeCap = StrokeCap.Round
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChestTreasurePile(
+    lifetimeCoins: Int,
+    modifier: Modifier = Modifier
+) {
+    val visibleCoins = visibleChestCoinCountFor(lifetimeCoins)
+    Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
+        repeat(visibleCoins) { index ->
+            val x = listOf(2, 18, 35, 52, 68, 10, 28, 47, 62)[index].dp
+            val y = listOf(14, 7, 12, 5, 16, 25, 22, 25, 26)[index].dp
+            Image(
+                painter = painterResource(id = if (index % 4 == 0) R.drawable.item_gem_pouch else R.drawable.item_gold_coin),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(if (index % 4 == 0) 20.dp else 18.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = x, y = y)
+            )
+        }
+        Image(
+            painter = painterResource(id = R.drawable.item_treasure_chest),
+            contentDescription = "Cufăr cu comori",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(width = 86.dp, height = 58.dp)
+                .align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -3770,14 +4111,12 @@ internal fun CorrectRewardBurst(state: GameState) {
                         )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(
-                            painter = painterResource(id = R.drawable.item_treasure_chest),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(44.dp)
+                        ChestTreasurePile(
+                            lifetimeCoins = state.lifetimeCoins,
+                            modifier = Modifier.size(width = 92.dp, height = 62.dp)
                         )
                         Text(
-                            text = "Mastery",
+                            text = "+ comoară",
                             color = StarGold,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black
