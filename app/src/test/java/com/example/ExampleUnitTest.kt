@@ -222,6 +222,26 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun rewardCollectionTracksNextUnlockAndRarityProgress() {
+        assertEquals(0, unlockedRewardCountFor(lifetimeCoins = 2))
+        assertEquals(1, unlockedRewardCountFor(lifetimeCoins = 3))
+        assertEquals(4, unlockedRewardCountFor(lifetimeCoins = 12))
+        assertEquals(6, unlockedRewardCountFor(lifetimeCoins = 40))
+
+        assertEquals("Monedă", nextRewardLabelFor(lifetimeCoins = 0))
+        assertEquals("Hartă", nextRewardLabelFor(lifetimeCoins = 3))
+        assertEquals("Colecție completă", nextRewardLabelFor(lifetimeCoins = 40))
+
+        assertEquals(3, coinsToNextRewardFor(lifetimeCoins = 0))
+        assertEquals(2, coinsToNextRewardFor(lifetimeCoins = 4))
+        assertEquals(0, coinsToNextRewardFor(lifetimeCoins = 40))
+
+        assertEquals(0f, rewardProgressToNextFor(lifetimeCoins = 0), 0.001f)
+        assertEquals(0.333f, rewardProgressToNextFor(lifetimeCoins = 4), 0.01f)
+        assertEquals(1f, rewardProgressToNextFor(lifetimeCoins = 40), 0.001f)
+    }
+
+    @Test
     fun roundFocusExplainsTheCurrentMasteryGoal() {
         assertEquals(
             RoundFocus(

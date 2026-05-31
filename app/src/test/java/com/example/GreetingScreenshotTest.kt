@@ -127,6 +127,29 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun reward_harbor_progress_screenshot() {
+    val state = GameState(
+      lifetimeCoins = 10,
+      bestStreak = 5
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          RewardHarbor(state = state)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/reward_harbor_progress.png")
+  }
+
+  @Test
   fun parent_dash_journal_screenshot() {
     val state = GameState(
       correctTotal = 9,

@@ -31,6 +31,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - `Jurnal de căpitan` în Parent Dash cu ultimele sesiuni, trend de acuratețe și nivelul atins
 - setări părinte persistente, pliate în Parent Dash, pentru țintă zilnică, minute de sesiune și challenge maxim
 - colecție de recompense deblocată treptat, ca Oséa să revină la propria aventură
+- progres vizual către următoarea recompensă, cu praguri de comori și rarități `Comun`/`Rar`/`Legendar`
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
 - obiecte numărabile generate ca PNG-uri premium: corăbii, cufere, bănuți, tunuri, săbii, hărți, lunete, busole, ancore și lopeți de comoară
 - set nou de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele și felinar
@@ -81,3 +82,4 @@ This branch was verified with:
 Generated debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Latest visual QA screenshot: `app/src/test/screenshots/greeting.png`.
 Recovery mission visual QA: `app/src/test/screenshots/recovery_mission_stage.png`.
+Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.

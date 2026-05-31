@@ -31,6 +31,7 @@
 - Continuitate între sesiuni: aplicația salvează local comorile totale, sesiunile finalizate și recordul de streak.
 - Continuitate între zile: streak-ul zilnic, ultimul raport și `Jurnalul de căpitan` rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
+- Recompense cu țintă: colecția arată următorul obiect, câte comori lipsesc și raritatea lui, ca progresul să rămână motivant între runde.
 
 ## Direcția Curentă A Produsului
 
@@ -75,6 +76,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră, lopată, cârmă de corabie, săculeț cu nestemate, ghiulele și felinar.
 - Fiecare obiect a fost generat pe chroma-key și convertit local în PNG transparent, salvat ca `item_*.png` în `app/src/main/res/drawable`.
 - Recompensele din `Colecția lui Oséa` refolosesc aceleași asset-uri premium pentru monedă, hartă, lunetă, busolă, ancoră și cufăr, cu stare vizuală blocată/deblocată.
+- Reward Harbor folosește praguri explicite de comori și rarități vizuale (`Comun`, `Rar`, `Legendar`) pentru a păstra colecția ca obiectiv de aventură, nu doar ca listă de iconuri.
 - Launcher icon-ul folosește o compoziție locală din corabie, cufăr și monedă, cu fundal oceanic, pentru ca APK-ul instalat să nu mai apară cu icon generic.
 
 ## Verificare Tehnică
@@ -89,6 +91,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
 - QA vizual Pixel 8: `Parent Dash` cu `Jurnal de căpitan` are captură Roborazzi dedicată pentru trend și recomandarea următorului pas.
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
+- QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
@@ -105,6 +108,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
 - QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
 - QA tehnic: `Port sigur` are teste unitare pentru range mic, declanșarea struggle detector-ului și queue-ul după reparare.
+- QA tehnic: colecția de recompense are teste unitare pentru praguri, următorul unlock, monede rămase și progres.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.

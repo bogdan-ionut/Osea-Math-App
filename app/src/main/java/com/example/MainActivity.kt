@@ -129,6 +129,13 @@ data class RewardDefinition(
     val label: String,
     val detail: String,
     val drawableRes: Int,
+    val color: Color,
+    val unlockCoins: Int,
+    val rarity: RewardRarity
+)
+
+data class RewardRarity(
+    val label: String,
     val color: Color
 )
 
@@ -177,6 +184,10 @@ private val learningIslands = listOf(
     LearningIsland("Comoara Mastery", "răspunsuri sigure", 12, Color(0xFF81C784), "★")
 )
 
+private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
+private val rareReward = RewardRarity("Rar", Color(0xFFFFD54F))
+private val legendaryReward = RewardRarity("Legendar", Color(0xFFFF8A65))
+
 fun activeLearningIslandIndexFor(correctTotal: Int): Int {
     val nextIslandIndex = learningIslands.indexOfFirst { correctTotal < it.targetCoins }
     return if (nextIslandIndex == -1) learningIslands.lastIndex else nextIslandIndex
@@ -197,13 +208,39 @@ fun activeLearningIslandSegmentProgress(correctTotal: Int): Float {
 }
 
 private val rewardDefinitions = listOf(
-    RewardDefinition("Monedă", "prima pradă", R.drawable.item_gold_coin, StarGold),
-    RewardDefinition("Hartă", "drum secret", R.drawable.item_treasure_map, Color(0xFFFFE082)),
-    RewardDefinition("Lunetă", "ochi de căpitan", R.drawable.item_spyglass, Color(0xFF64B5F6)),
-    RewardDefinition("Busolă", "direcție bună", R.drawable.item_compass, Color(0xFFFFB74D)),
-    RewardDefinition("Ancoră", "port sigur", R.drawable.item_anchor, Color(0xFFB0BEC5)),
-    RewardDefinition("Cufăr", "comoară mare", R.drawable.item_treasure_chest, Color(0xFFFF8A65))
+    RewardDefinition("Monedă", "prima pradă", R.drawable.item_gold_coin, StarGold, 3, commonReward),
+    RewardDefinition("Hartă", "drum secret", R.drawable.item_treasure_map, Color(0xFFFFE082), 6, commonReward),
+    RewardDefinition("Lunetă", "ochi de căpitan", R.drawable.item_spyglass, Color(0xFF64B5F6), 9, commonReward),
+    RewardDefinition("Busolă", "direcție bună", R.drawable.item_compass, Color(0xFFFFB74D), 12, rareReward),
+    RewardDefinition("Ancoră", "port sigur", R.drawable.item_anchor, Color(0xFFB0BEC5), 18, rareReward),
+    RewardDefinition("Cufăr", "comoară mare", R.drawable.item_treasure_chest, Color(0xFFFF8A65), 24, legendaryReward)
 )
+
+fun unlockedRewardCountFor(lifetimeCoins: Int): Int {
+    return rewardDefinitions.count { lifetimeCoins >= it.unlockCoins }
+}
+
+private fun nextRewardDefinitionFor(lifetimeCoins: Int): RewardDefinition? {
+    return rewardDefinitions.firstOrNull { lifetimeCoins < it.unlockCoins }
+}
+
+fun nextRewardLabelFor(lifetimeCoins: Int): String {
+    return nextRewardDefinitionFor(lifetimeCoins)?.label ?: "Colecție completă"
+}
+
+fun coinsToNextRewardFor(lifetimeCoins: Int): Int {
+    val nextReward = nextRewardDefinitionFor(lifetimeCoins) ?: return 0
+    return (nextReward.unlockCoins - lifetimeCoins).coerceAtLeast(0)
+}
+
+fun rewardProgressToNextFor(lifetimeCoins: Int): Float {
+    val nextReward = nextRewardDefinitionFor(lifetimeCoins) ?: return 1f
+    val previousUnlock = rewardDefinitions
+        .filter { it.unlockCoins < nextReward.unlockCoins }
+        .maxOfOrNull { it.unlockCoins } ?: 0
+    val span = (nextReward.unlockCoins - previousUnlock).coerceAtLeast(1)
+    return ((lifetimeCoins - previousUnlock).toFloat() / span.toFloat()).coerceIn(0f, 1f)
+}
 
 fun correctAnswerFor(num1: Int, num2: Int, operation: MathOperation): Int {
     return when (operation) {
@@ -1658,8 +1695,9 @@ private fun VoyageMissionStrip(
 }
 
 @Composable
-private fun RewardHarbor(state: GameState) {
-    val unlockedRewards = (state.lifetimeCoins / 3).coerceIn(0, rewardDefinitions.size)
+internal fun RewardHarbor(state: GameState) {
+    val unlockedRewards = unlockedRewardCountFor(state.lifetimeCoins)
+    val nextReward = nextRewardDefinitionFor(state.lifetimeCoins)
 
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -1701,6 +1739,11 @@ private fun RewardHarbor(state: GameState) {
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
+            RewardProgressCard(
+                lifetimeCoins = state.lifetimeCoins,
+                nextReward = nextReward
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -1709,6 +1752,7 @@ private fun RewardHarbor(state: GameState) {
                     RewardBadge(
                         reward = reward,
                         isUnlocked = index < unlockedRewards,
+                        isNext = nextReward == reward,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -1718,13 +1762,101 @@ private fun RewardHarbor(state: GameState) {
 }
 
 @Composable
+private fun RewardProgressCard(
+    lifetimeCoins: Int,
+    nextReward: RewardDefinition?
+) {
+    val progress = rewardProgressToNextFor(lifetimeCoins)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, (nextReward?.rarity?.color ?: EmeraldGreen).copy(alpha = 0.38f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = (nextReward?.color ?: EmeraldGreen).copy(alpha = 0.18f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (nextReward != null) {
+                        Image(
+                            painter = painterResource(nextReward.drawableRes),
+                            contentDescription = nextReward.label,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize().padding(6.dp)
+                        )
+                    } else {
+                        Text("✓", color = EmeraldGreen, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (nextReward == null) "Colecție completă" else "Următor: ${nextReward.label}",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = if (nextReward == null) "gata" else "-${coinsToNextRewardFor(lifetimeCoins)}",
+                        color = nextReward?.rarity?.color ?: EmeraldGreen,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(7.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = nextReward?.rarity?.color ?: EmeraldGreen,
+                    trackColor = Color.White.copy(alpha = 0.12f),
+                    strokeCap = StrokeCap.Round
+                )
+                Text(
+                    text = if (nextReward == null) {
+                        "Toate comorile de bază sunt în port."
+                    } else {
+                        "${nextReward.rarity.label} • deblocat la ${nextReward.unlockCoins} comori"
+                    },
+                    color = TextSandy.copy(alpha = 0.72f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun RewardBadge(
     reward: RewardDefinition,
     isUnlocked: Boolean,
+    isNext: Boolean,
     modifier: Modifier = Modifier
 ) {
     val scale by animateFloatAsState(
-        targetValue = if (isUnlocked) 1.05f else 1f,
+        targetValue = when {
+            isUnlocked -> 1.06f
+            isNext -> 1.03f
+            else -> 1f
+        },
         animationSpec = spring(dampingRatio = 0.68f, stiffness = 300f),
         label = "rewardScale"
     )
@@ -1734,27 +1866,61 @@ private fun RewardBadge(
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
+                .size(46.dp)
                 .clip(CircleShape)
-                .background(if (isUnlocked) reward.color.copy(alpha = 0.88f) else Color.White.copy(alpha = 0.1f))
+                .background(
+                    when {
+                        isUnlocked -> reward.color.copy(alpha = 0.88f)
+                        isNext -> reward.rarity.color.copy(alpha = 0.18f)
+                        else -> Color.White.copy(alpha = 0.1f)
+                    }
+                )
                 .border(
-                    1.dp,
-                    if (isUnlocked) Color.White.copy(alpha = 0.82f) else Color.White.copy(alpha = 0.14f),
+                    if (isNext) 2.dp else 1.dp,
+                    when {
+                        isUnlocked -> Color.White.copy(alpha = 0.82f)
+                        isNext -> reward.rarity.color.copy(alpha = 0.78f)
+                        else -> Color.White.copy(alpha = 0.14f)
+                    },
                     CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
+            if (isUnlocked && reward.rarity != commonReward) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(
+                        color = Color.White.copy(alpha = 0.18f),
+                        radius = size.minDimension * 0.42f,
+                        center = Offset(size.width * 0.34f, size.height * 0.26f)
+                    )
+                }
+            }
             Image(
                 painter = painterResource(reward.drawableRes),
                 contentDescription = reward.label,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(6.dp)
-                    .alpha(if (isUnlocked) 1f else 0.34f)
+                    .padding(if (isNext) 5.dp else 6.dp)
+                    .alpha(if (isUnlocked || isNext) 1f else 0.34f)
             )
         }
         Spacer(modifier = Modifier.height(5.dp))
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = reward.rarity.color.copy(alpha = if (isUnlocked || isNext) 0.18f else 0.08f),
+            border = BorderStroke(1.dp, reward.rarity.color.copy(alpha = if (isUnlocked || isNext) 0.42f else 0.16f))
+        ) {
+            Text(
+                text = reward.rarity.label,
+                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                color = reward.rarity.color.copy(alpha = if (isUnlocked || isNext) 1f else 0.45f),
+                fontSize = 6.sp,
+                fontWeight = FontWeight.Black,
+                maxLines = 1
+            )
+        }
+        Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = reward.label,
             color = Color.White.copy(alpha = if (isUnlocked) 0.86f else 0.42f),
@@ -1763,8 +1929,8 @@ private fun RewardBadge(
             lineHeight = 9.sp
         )
         Text(
-            text = if (isUnlocked) reward.detail else "încuiat",
-            color = TextSandy.copy(alpha = if (isUnlocked) 0.62f else 0.32f),
+            text = if (isUnlocked) reward.detail else "${reward.unlockCoins} comori",
+            color = TextSandy.copy(alpha = if (isUnlocked || isNext) 0.62f else 0.32f),
             fontSize = 7.sp,
             textAlign = TextAlign.Center,
             lineHeight = 8.sp,
