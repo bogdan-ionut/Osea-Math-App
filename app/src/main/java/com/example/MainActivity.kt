@@ -240,7 +240,11 @@ private val treasureItems = listOf(
     PirateItem("rubin", "rubine", "sclipitoare", Color(0xFFFF6B8A), TreasureShape.Gem, R.drawable.item_gem_pouch),
     PirateItem("pumnal", "pumnale", "de aventurier", Color(0xFF90CAF9), TreasureShape.Spyglass, R.drawable.item_cutlass),
     PirateItem("inel", "inele", "din aur", Color(0xFFFFD54F), TreasureShape.Coin, R.drawable.item_gold_coin),
-    PirateItem("semnal", "semnale", "cu felinarul", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern)
+    PirateItem("semnal", "semnale", "cu felinarul", Color(0xFFFFD180), TreasureShape.Key, R.drawable.item_ship_lantern),
+    PirateItem("sticlă", "sticle", "cu mesaj secret", Color(0xFF6EC6FF), TreasureShape.Spyglass, R.drawable.item_message_bottle),
+    PirateItem("scoică", "scoici", "cu perle mari", Color(0xFFF8BBD0), TreasureShape.Shell, R.drawable.item_pearl_shell),
+    PirateItem("sextant", "sextante", "de navigator", Color(0xFFD7A64A), TreasureShape.Compass, R.drawable.item_sextant),
+    PirateItem("steag", "steaguri", "de comoară", Color(0xFFFFD54F), TreasureShape.Map, R.drawable.item_pirate_flag)
 )
 
 private val learningIslands = listOf(
@@ -256,7 +260,11 @@ private val voyageSurprises = listOf(
     VoyageSurprise("Cufăr mic", "strălucește pe punte", R.drawable.item_treasure_chest, Color(0xFFFFB74D)),
     VoyageSurprise("Busolă vie", "arată drumul corect", R.drawable.item_compass, Color(0xFFFFCA28)),
     VoyageSurprise("Tun vechi", "salută victoria", R.drawable.item_cannon, Color(0xFFB0BEC5)),
-    VoyageSurprise("Săculeț de rubine", "cade în cufăr", R.drawable.item_gem_pouch, Color(0xFFE57373))
+    VoyageSurprise("Săculeț de rubine", "cade în cufăr", R.drawable.item_gem_pouch, Color(0xFFE57373)),
+    VoyageSurprise("Sticlă cu mesaj", "aduce un indiciu nou", R.drawable.item_message_bottle, Color(0xFF6EC6FF)),
+    VoyageSurprise("Scoică regală", "ascunde perle", R.drawable.item_pearl_shell, Color(0xFFF8BBD0)),
+    VoyageSurprise("Sextant de aur", "măsoară drumul", R.drawable.item_sextant, Color(0xFFD7A64A)),
+    VoyageSurprise("Steag de comoară", "marchează ruta", R.drawable.item_pirate_flag, Color(0xFFFFD54F))
 )
 
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))

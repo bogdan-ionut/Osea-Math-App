@@ -153,6 +153,38 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun new_generated_treasure_items_screenshot() {
+    val state = GameState(
+      num1 = 2,
+      num2 = 2,
+      operation = MathOperation.Addition,
+      item1 = PirateItem("sticlÄƒ", "sticle", "cu mesaj secret", Color(0xFF6EC6FF), TreasureShape.Spyglass, R.drawable.item_message_bottle),
+      item2 = PirateItem("scoicÄƒ", "scoici", "cu perle mari", Color(0xFFF8BBD0), TreasureShape.Shell, R.drawable.item_pearl_shell)
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        val countedItems = remember { mutableStateMapOf<String, Int>() }
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          ProblemStage(
+            state = state,
+            countedItems = countedItems,
+            guidedItemId = nextGuidedItemId(state, countedItems.keys),
+            onItemTapped = {}
+          )
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/new_treasure_items.png")
+  }
+
+  @Test
   fun reward_harbor_progress_screenshot() {
     val state = GameState(
       lifetimeCoins = 10,

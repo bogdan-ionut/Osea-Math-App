@@ -81,7 +81,8 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - `img_osea_cove_background.png`: fundal ilustrat nou, generat cu skill-ul `imagegen`, salvat local în `app/src/main/res/drawable`.
 - Prompt folosit: scenă marină premium pentru joc educațional Android, fără text sau UI, cu zonă centrală calmă pentru componentele aplicației.
 - Obiectele numărabile folosesc acum un asset pack generat cu `imagegen`: corabie, cufăr, bănuț, tun decorativ, sabie de căpitan, hartă, lunetă, busolă, ancoră, lopată, cârmă de corabie, săculeț cu nestemate, ghiulele și felinar.
-- Variantele de joc refolosesc asset-urile premium pentru obiecte noi de numărat: pergament, chei, rubine, pumnale, inele și semnale cu felinarul.
+- Variantele de joc refolosesc asset-urile premium pentru obiecte noi de numărat: pergament, chei, rubine, pumnale, inele, semnale cu felinarul, sticle cu mesaj, scoici cu perle, sextante și steaguri de comoară.
+- Asset pack-ul nou a fost generat cu `imagegen` pe chroma-key și convertit local în PNG transparent: `item_message_bottle.png`, `item_pearl_shell.png`, `item_sextant.png`, `item_pirate_flag.png`.
 - Fiecare obiect a fost generat pe chroma-key și convertit local în PNG transparent, salvat ca `item_*.png` în `app/src/main/res/drawable`.
 - Recompensele din `Colecția lui Oséa` refolosesc aceleași asset-uri premium pentru monedă, hartă, lunetă, busolă, ancoră și cufăr, cu stare vizuală blocată/deblocată.
 - Reward Harbor folosește praguri explicite de comori și rarități vizuale (`Comun`, `Rar`, `Legendar`) pentru a păstra colecția ca obiectiv de aventură, nu doar ca listă de iconuri.
@@ -97,6 +98,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: onboarding-ul are captură Roborazzi dedicată pentru presetul recomandat de start.
 - QA vizual Pixel 8: `Misiuni de azi` are captură Roborazzi dedicată pentru cele trei obiective vizuale ale sesiunii.
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.
+- QA vizual Pixel 8: noile obiecte generate au captură dedicată `new_treasure_items.png`, ca sticla cu mesaj și scoica cu perle să fie verificate în contextul real al problemei.
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.
 - QA vizual Pixel 8: `Parent Dash` cu `Jurnal de căpitan` are captură Roborazzi dedicată pentru trend și recomandarea următorului pas.

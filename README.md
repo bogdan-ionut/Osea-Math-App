@@ -39,7 +39,8 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - progres vizual către următoarea recompensă, cu praguri de comori și rarități `Comun`/`Rar`/`Legendar`
 - recompensele folosesc aceleași PNG-uri pirate generate: monedă, hartă, lunetă, busolă, ancoră și cufăr
 - obiecte numărabile generate ca PNG-uri premium: corăbii, cufere, bănuți, tunuri, săbii, hărți, lunete, busole, ancore și lopeți de comoară
-- set extins de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele, felinar, pergament, chei, rubine, pumnale și inele
+- set extins de obiecte premium mai mari și mai detaliate: cârmă de corabie, săculeț cu nestemate, ghiulele, felinar, pergament, chei, rubine, pumnale, inele, sticle cu mesaj, scoici cu perle, sextante și steaguri de comoară
+- surprize de hartă extinse cu noile PNG-uri generate: sticlă cu mesaj, scoică regală, sextant de aur și steag de comoară
 - cufăr vizual care se umple cu monede și nestemate pe măsură ce se strâng comori
 - launcher icon nou, aliniat cu tema de aventură pe mare: corabie, cufăr și monedă
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
