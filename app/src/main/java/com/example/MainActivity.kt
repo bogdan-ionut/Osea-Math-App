@@ -188,6 +188,13 @@ data class ParentAuditSignal(
     val color: Color
 )
 
+data class RewardBurstSummary(
+    val title: String,
+    val detail: String,
+    val nextRewardText: String,
+    val progress: Float
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -309,6 +316,21 @@ fun rewardProgressToNextFor(lifetimeCoins: Int): Float {
         .maxOfOrNull { it.unlockCoins } ?: 0
     val span = (nextReward.unlockCoins - previousUnlock).coerceAtLeast(1)
     return ((lifetimeCoins - previousUnlock).toFloat() / span.toFloat()).coerceIn(0f, 1f)
+}
+
+fun rewardBurstSummaryFor(state: GameState): RewardBurstSummary {
+    val nextReward = nextRewardLabelFor(state.lifetimeCoins)
+    val coinsToNext = coinsToNextRewardFor(state.lifetimeCoins)
+    return RewardBurstSummary(
+        title = "Comoară +1",
+        detail = "Streak ${state.streak}. Colecția are ${state.lifetimeCoins} comori.",
+        nextRewardText = if (coinsToNext == 0) {
+            "Colecția de bază este completă."
+        } else {
+            "$coinsToNext până la $nextReward"
+        },
+        progress = rewardProgressToNextFor(state.lifetimeCoins)
+    )
 }
 
 fun captainQuestsFor(state: GameState): List<CaptainQuest> {
@@ -3664,7 +3686,8 @@ private fun RecoveryMissionCard(state: GameState) {
 }
 
 @Composable
-private fun CorrectRewardBurst(state: GameState) {
+internal fun CorrectRewardBurst(state: GameState) {
+    val summary = rewardBurstSummaryFor(state)
     val scale by animateFloatAsState(
         targetValue = if (state.isCorrecting) 1.04f else 0.96f,
         animationSpec = spring(dampingRatio = 0.48f, stiffness = 260f),
@@ -3680,56 +3703,137 @@ private fun CorrectRewardBurst(state: GameState) {
             color = StarGold.copy(alpha = 0.18f),
             border = BorderStroke(1.dp, StarGold.copy(alpha = 0.62f))
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(54.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.22f))
-                        .border(1.dp, Color.White.copy(alpha = 0.7f), CircleShape),
-                    contentAlignment = Alignment.Center
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.item_gold_coin),
-                        contentDescription = "Bănuț de recompensă",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize().padding(6.dp)
-                    )
+                    RewardCoinBurstIcon()
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = summary.title,
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = summary.detail,
+                            color = TextSandy,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 14.sp
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(
+                            painter = painterResource(id = R.drawable.item_treasure_chest),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(44.dp)
+                        )
+                        Text(
+                            text = "Mastery",
+                            color = StarGold,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Comoară +1",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                    Text(
-                        text = "Streak ${state.streak}. Colecția are ${state.lifetimeCoins} comori.",
-                        color = TextSandy,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        lineHeight = 14.sp
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.item_treasure_chest),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Text(
-                        text = "Mastery",
-                        color = StarGold,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Black
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, StarGold.copy(alpha = 0.28f))
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Următoarea comoară",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                            Text(
+                                text = summary.nextRewardText,
+                                color = StarGold,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                textAlign = TextAlign.End
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(5.dp))
+                        LinearProgressIndicator(
+                            progress = { summary.progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(50)),
+                            color = StarGold,
+                            trackColor = Color.White.copy(alpha = 0.12f),
+                            strokeCap = StrokeCap.Round
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RewardCoinBurstIcon() {
+    Box(
+        modifier = Modifier.size(62.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val sparkle = StarGold.copy(alpha = 0.82f)
+            drawCircle(
+                color = StarGold.copy(alpha = 0.16f),
+                radius = size.minDimension * 0.48f,
+                center = Offset(size.width / 2f, size.height / 2f)
+            )
+            val points = listOf(
+                Offset(size.width * 0.18f, size.height * 0.24f),
+                Offset(size.width * 0.78f, size.height * 0.18f),
+                Offset(size.width * 0.86f, size.height * 0.7f),
+                Offset(size.width * 0.18f, size.height * 0.78f)
+            )
+            points.forEachIndexed { index, point ->
+                val radius = if (index % 2 == 0) 4.8f else 3.6f
+                drawLine(
+                    color = sparkle,
+                    start = Offset(point.x - radius, point.y),
+                    end = Offset(point.x + radius, point.y),
+                    strokeWidth = 2.2f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = sparkle,
+                    start = Offset(point.x, point.y - radius),
+                    end = Offset(point.x, point.y + radius),
+                    strokeWidth = 2.2f,
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.22f))
+                .border(1.dp, Color.White.copy(alpha = 0.7f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.item_gold_coin),
+                contentDescription = "Bănuț de recompensă",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize().padding(5.dp)
+            )
         }
     }
 }

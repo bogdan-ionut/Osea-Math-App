@@ -302,6 +302,20 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun rewardBurstShowsImmediateProgressTowardTheCollection() {
+        val summary = rewardBurstSummaryFor(GameState(streak = 3, lifetimeCoins = 10))
+
+        assertEquals("Comoară +1", summary.title)
+        assertEquals("Streak 3. Colecția are 10 comori.", summary.detail)
+        assertEquals("2 până la Busolă", summary.nextRewardText)
+        assertEquals(0.333f, summary.progress, 0.01f)
+
+        val completeSummary = rewardBurstSummaryFor(GameState(streak = 4, lifetimeCoins = 40))
+        assertEquals("Colecția de bază este completă.", completeSummary.nextRewardText)
+        assertEquals(1f, completeSummary.progress, 0.001f)
+    }
+
+    @Test
     fun onboardingPresetsStartWithTheAgeFourRecommendation() {
         val presets = onboardingPresetOptions()
         val recommended = recommendedOnboardingPresetForAge(4)

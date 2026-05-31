@@ -202,6 +202,30 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun reward_burst_screenshot() {
+    val state = GameState(
+      streak = 3,
+      lifetimeCoins = 10,
+      isCorrecting = true
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          CorrectRewardBurst(state = state)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/reward_burst.png")
+  }
+
+  @Test
   fun parent_dash_journal_screenshot() {
     val state = GameState(
       correctTotal = 9,

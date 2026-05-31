@@ -17,7 +17,7 @@
 - Struggle detector concret: după o reparare susținută, următoarea rundă devine `Port sigur`, cu adunări mici până la 4, ca materialul prea greu să fie înlocuit imediat cu bazele potrivite.
 - Selector adaptiv de operații: minusul apare doar după semnale bune la adunare, respectă challenge-ul maxim al părintelui și revine intenționat când scăderea are acuratețe scăzută.
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
-- Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, streak-ul și colecția, apoi jocul continuă automat.
+- Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, sparkle, streak-ul și progresul către următoarea comoară, apoi jocul continuă automat.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
 - Audit părinte: un rezumat 2HL separat combină timp de lucru, calitate/eficiență și skill gap într-un semnal ușor de citit.
 - Jurnal pentru părinte: ultimele sesiuni rămân salvate local, cu trend simplu de acuratețe și nivel, ca progresul să nu fie doar „ultima sesiune”.
@@ -69,7 +69,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 ## Următoarele Milestone-uri Premium
 
 - Profil local persistent cu streak-uri zilnice, recompense deblocate și istoric pentru părinte.
-- Extinderea asset pack-ului cu animații ușoare și variante rare pentru recompensele vizuale de colecție.
+- Extinderea asset pack-ului cu variante rare suplimentare pentru recompensele vizuale de colecție.
 - Extinderea narațiunii vocale cu voci înregistrate custom pentru Osea, dacă TTS-ul device-ului nu e suficient de cald.
 - Ecran detaliat pentru părinte livrat în Parent Dash; următorul pas este export/istoric mai lung pe săptămâni.
 - Onboarding completat cu preset recomandat; următorul pas este personalizare mai fină după câteva sesiuni reale.
@@ -100,6 +100,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: `Audit părinte` este inclus în captura Parent Dash pentru timp, calitate și skill gap.
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
+- QA vizual Pixel 8: micro-recompensa `Comoară +1` are captură Roborazzi dedicată pentru sparkle și progresul către următoarea comoară.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
 - QA tehnic: ecranul de final folosește același `GameState` și compilează în build-ul debug, cu layout scrollable pentru telefoane mici.
 - QA tehnic: narațiunea folosește Android `TextToSpeech` local, inițializat doar la apăsarea butonului `Ascultă`, fără dependență de internet.
@@ -118,6 +119,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
 - QA tehnic: `Port sigur` are teste unitare pentru range mic, declanșarea struggle detector-ului și queue-ul după reparare.
 - QA tehnic: colecția de recompense are teste unitare pentru praguri, următorul unlock, monede rămase și progres.
+- QA tehnic: micro-recompensa are test unitar pentru textul de streak, următoarea comoară și progres.
 - QA tehnic: preset-urile de onboarding au teste unitare pentru recomandarea de 4 ani, scalarea pentru copii mai mari și sumarul afișat.
 - QA tehnic: `Misiuni de azi` are teste unitare pentru progresul țintei zilnice, eficiență și următoarea recompensă.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
