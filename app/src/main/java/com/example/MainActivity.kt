@@ -9,8 +9,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -4123,6 +4129,8 @@ internal fun CorrectRewardBurst(state: GameState) {
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(6.dp))
+                FlyingTreasureTrail()
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -4164,6 +4172,86 @@ internal fun CorrectRewardBurst(state: GameState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FlyingTreasureTrail() {
+    val transition = rememberInfiniteTransition(label = "flyingTreasureTrail")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 900, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "coinFlightPhase"
+    )
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(34.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(1.dp, StarGold.copy(alpha = 0.18f), RoundedCornerShape(18.dp))
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val start = Offset(size.width * 0.08f, size.height * 0.66f)
+            val end = Offset(size.width * 0.92f, size.height * 0.36f)
+            val path = Path().apply {
+                moveTo(start.x, start.y)
+                cubicTo(
+                    size.width * 0.32f,
+                    size.height * 0.02f,
+                    size.width * 0.62f,
+                    size.height * 0.94f,
+                    end.x,
+                    end.y
+                )
+            }
+            drawPath(
+                path = path,
+                color = StarGold.copy(alpha = 0.28f),
+                style = Stroke(width = 3f, cap = StrokeCap.Round)
+            )
+            repeat(7) { index ->
+                val t = index / 6f
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.42f),
+                    radius = 2.2f,
+                    center = Offset(
+                        x = start.x + (end.x - start.x) * t,
+                        y = start.y + (end.y - start.y) * t
+                    )
+                )
+            }
+        }
+        repeat(3) { index ->
+            val p = (phase + index * 0.27f) % 1f
+            val arc = if (p < 0.5f) p * 2f else (1f - p) * 2f
+            val travelWidth = (maxWidth - 144.dp).coerceAtLeast(80.dp)
+            val x = 10.dp + travelWidth * p
+            val y = 17.dp - 12.dp * arc + (index % 2).dp
+            Image(
+                painter = painterResource(id = if (index == 1) R.drawable.item_gem_pouch else R.drawable.item_gold_coin),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(if (index == 1) 22.dp else 20.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = x, y = y)
+            )
+        }
+        Text(
+            text = "spre cufăr",
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp),
+            color = StarGold,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Black
+        )
     }
 }
 
