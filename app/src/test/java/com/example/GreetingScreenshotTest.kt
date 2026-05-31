@@ -176,6 +176,32 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun captain_quest_board_screenshot() {
+    val state = GameState(
+      correctTotal = 3,
+      attemptsTotal = 4,
+      repairRounds = 1,
+      dailyTarget = 8,
+      lifetimeCoins = 10
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          CaptainQuestBoard(state = state)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/captain_quest_board.png")
+  }
+
+  @Test
   fun parent_dash_journal_screenshot() {
     val state = GameState(
       correctTotal = 9,

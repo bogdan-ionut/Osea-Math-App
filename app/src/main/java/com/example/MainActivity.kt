@@ -171,6 +171,15 @@ data class OnboardingPreset(
     val recommended: Boolean = false
 )
 
+data class CaptainQuest(
+    val title: String,
+    val detail: String,
+    val valueText: String,
+    val progress: Float,
+    val color: Color,
+    val drawableRes: Int
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -292,6 +301,55 @@ fun rewardProgressToNextFor(lifetimeCoins: Int): Float {
         .maxOfOrNull { it.unlockCoins } ?: 0
     val span = (nextReward.unlockCoins - previousUnlock).coerceAtLeast(1)
     return ((lifetimeCoins - previousUnlock).toFloat() / span.toFloat()).coerceIn(0f, 1f)
+}
+
+fun captainQuestsFor(state: GameState): List<CaptainQuest> {
+    val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal).coerceIn(0, 100)
+    val efficiency = learningEfficiencyScore(
+        correct = state.correctTotal,
+        attempts = state.attemptsTotal,
+        repairRounds = state.repairRounds,
+        consecutiveWrong = state.consecutiveWrong
+    )
+    val nextReward = nextRewardDefinitionFor(state.lifetimeCoins)
+    val remainingDaily = (state.dailyTarget - state.correctTotal).coerceAtLeast(0)
+    val efficiencyColor = when {
+        state.attemptsTotal < 3 -> CoralBlue
+        efficiency >= 85 -> EmeraldGreen
+        efficiency >= 70 -> StarGold
+        else -> RubyRed
+    }
+
+    return listOf(
+        CaptainQuest(
+            title = "Ținta de azi",
+            detail = if (remainingDaily == 0) "Comoara zilei e gata." else "$remainingDaily comori rămase",
+            valueText = "${state.correctTotal}/${state.dailyTarget}",
+            progress = dailyRingProgress(current = state.correctTotal, total = state.dailyTarget),
+            color = StarGold,
+            drawableRes = R.drawable.item_gold_coin
+        ),
+        CaptainQuest(
+            title = "Siguranță",
+            detail = if (state.attemptsTotal < 3) "Calibrăm primele răspunsuri." else "$accuracy% răspunsuri corecte",
+            valueText = "$efficiency%",
+            progress = dailyRingProgress(current = efficiency, total = 100),
+            color = efficiencyColor,
+            drawableRes = R.drawable.item_compass
+        ),
+        CaptainQuest(
+            title = if (nextReward == null) "Colecție completă" else "Următoarea comoară",
+            detail = if (nextReward == null) {
+                "Toate obiectele de bază sunt în port."
+            } else {
+                "${coinsToNextRewardFor(state.lifetimeCoins)} comori până la ${nextReward.label}"
+            },
+            valueText = if (nextReward == null) "gata" else nextReward.rarity.label,
+            progress = rewardProgressToNextFor(state.lifetimeCoins),
+            color = nextReward?.rarity?.color ?: EmeraldGreen,
+            drawableRes = nextReward?.drawableRes ?: R.drawable.item_treasure_chest
+        )
+    )
 }
 
 fun correctAnswerFor(num1: Int, num2: Int, operation: MathOperation): Int {
@@ -1471,6 +1529,8 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     RewardHarbor(state = state)
                     Spacer(modifier = Modifier.height(12.dp))
+                    CaptainQuestBoard(state = state)
+                    Spacer(modifier = Modifier.height(12.dp))
                     ParentInsightStrip(
                         state = state,
                         onDailyTargetSelected = viewModel::setDailyTarget,
@@ -2196,6 +2256,130 @@ private fun RewardBadge(
             lineHeight = 8.sp,
             maxLines = 2
         )
+    }
+}
+
+@Composable
+internal fun CaptainQuestBoard(state: GameState) {
+    val quests = captainQuestsFor(state)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFF123343).copy(alpha = 0.88f),
+        border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.34f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Misiuni de azi",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "3 trasee scurte pentru sesiunea asta",
+                        color = TextSandy.copy(alpha = 0.72f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = CoralBlue.copy(alpha = 0.16f),
+                    border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.42f))
+                ) {
+                    Text(
+                        text = "${quests.count { it.progress >= 1f }}/${quests.size}",
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                        color = CoralBlue,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            quests.forEachIndexed { index, quest ->
+                CaptainQuestRow(quest = quest)
+                if (index != quests.lastIndex) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CaptainQuestRow(quest: CaptainQuest) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, quest.color.copy(alpha = 0.28f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(44.dp),
+                shape = RoundedCornerShape(15.dp),
+                color = quest.color.copy(alpha = 0.18f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))
+            ) {
+                Image(
+                    painter = painterResource(quest.drawableRes),
+                    contentDescription = quest.title,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = quest.title,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = quest.valueText,
+                        color = quest.color,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                }
+                Spacer(modifier = Modifier.height(5.dp))
+                LinearProgressIndicator(
+                    progress = { quest.progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = quest.color,
+                    trackColor = Color.White.copy(alpha = 0.12f),
+                    strokeCap = StrokeCap.Round
+                )
+                Text(
+                    text = quest.detail,
+                    color = TextSandy.copy(alpha = 0.76f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp
+                )
+            }
+        }
     }
 }
 

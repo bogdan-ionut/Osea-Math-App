@@ -266,6 +266,47 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun captainQuestsTranslateProgressIntoDailyMissions() {
+        val state = GameState(
+            correctTotal = 3,
+            attemptsTotal = 4,
+            repairRounds = 1,
+            consecutiveWrong = 0,
+            dailyTarget = 8,
+            lifetimeCoins = 10
+        )
+        val quests = captainQuestsFor(state)
+
+        assertEquals(3, quests.size)
+        assertEquals("Ținta de azi", quests[0].title)
+        assertEquals("3/8", quests[0].valueText)
+        assertEquals(0.375f, quests[0].progress, 0.001f)
+        assertEquals("Siguranță", quests[1].title)
+        assertEquals("67%", quests[1].valueText)
+        assertEquals(0.67f, quests[1].progress, 0.01f)
+        assertEquals("Următoarea comoară", quests[2].title)
+        assertEquals("Rar", quests[2].valueText)
+        assertEquals(0.333f, quests[2].progress, 0.01f)
+    }
+
+    @Test
+    fun captainQuestsShowCompleteStates() {
+        val state = GameState(
+            correctTotal = 8,
+            attemptsTotal = 8,
+            dailyTarget = 8,
+            lifetimeCoins = 30
+        )
+        val quests = captainQuestsFor(state)
+
+        assertEquals("Comoara zilei e gata.", quests[0].detail)
+        assertEquals(1f, quests[0].progress, 0.001f)
+        assertEquals("Colecție completă", quests[2].title)
+        assertEquals("gata", quests[2].valueText)
+        assertEquals(1f, quests[2].progress, 0.001f)
+    }
+
+    @Test
     fun roundFocusExplainsTheCurrentMasteryGoal() {
         assertEquals(
             RoundFocus(

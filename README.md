@@ -16,6 +16,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - onboarding scurt la prima rulare, cu preset recomandat pentru 4 ani: 8 comori, 10 minute și nivel 3
 - ecran de pauză la finalul time-box-ului, ca sesiunea să nu curgă la nesfârșit
 - Daily Rings vizibile imediat sus: timp, ținta de azi și siguranța răspunsurilor
+- `Misiuni de azi`: un board vizual cu ținta zilnică, siguranța răspunsurilor și următoarea comoară de colecție
 - `Focus Mastery` pe fiecare rundă, ca Oséa și părintele să vadă ce abilitate se antrenează chiar acum
 - progres vizual prin `Harta Mastery`
 - misiune activă pe hartă: aplicația arată următorul port, câte comori mai lipsesc și progresul pe segmentul curent
@@ -85,3 +86,4 @@ Latest visual QA screenshot: `app/src/test/screenshots/greeting.png`.
 Recovery mission visual QA: `app/src/test/screenshots/recovery_mission_stage.png`.
 Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.
 Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.
+Daily quests visual QA: `app/src/test/screenshots/captain_quest_board.png`.
