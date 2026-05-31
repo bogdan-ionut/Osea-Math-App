@@ -146,6 +146,13 @@ data class RoundFocus(
     val goal: String
 )
 
+data class RoundStepCue(
+    val badge: String,
+    val title: String,
+    val detail: String,
+    val color: Color
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -250,6 +257,90 @@ fun subtractionRemainingCountedFor(state: GameState, countedCount: Int): Int {
         (countedCount - state.num2).coerceIn(0, correctAnswerFor(state))
     } else {
         countedCount
+    }
+}
+
+fun roundStepCueFor(state: GameState, countedCount: Int): RoundStepCue {
+    val totalItems = visibleObjectCountFor(state)
+    val answer = correctAnswerFor(state)
+    val remainingTouches = remainingTouchesFor(state, countedCount)
+
+    return when {
+        state.isCorrecting -> RoundStepCue(
+            badge = "+1",
+            title = "Comoară câștigată",
+            detail = "Bravo. Urmează o nouă hartă scurtă.",
+            color = EmeraldGreen
+        )
+        state.selectedWrongAnswer != null && remainingTouches > 0 -> {
+            if (state.operation == MathOperation.Subtraction) {
+                val movedCount = subtractionMovedTouchesFor(state, countedCount)
+                if (movedCount < state.num2) {
+                    RoundStepCue(
+                        badge = "-1",
+                        title = "Reparăm: în cufăr",
+                        detail = "Atinge doar comoara luminoasă cu -1: $movedCount/${state.num2}.",
+                        color = RubyRed
+                    )
+                } else {
+                    RoundStepCue(
+                        badge = "=",
+                        title = "Reparăm: ce rămâne",
+                        detail = "Comoara din cufăr stă deoparte. Numărăm puntea.",
+                        color = CoralBlue
+                    )
+                }
+            } else {
+                RoundStepCue(
+                    badge = (countedCount + 1).toString(),
+                    title = "Reparăm numărarea",
+                    detail = "Atinge comoara luminoasă și mergem încet până la $totalItems.",
+                    color = CoralBlue
+                )
+            }
+        }
+        state.selectedWrongAnswer != null -> RoundStepCue(
+            badge = answer.toString(),
+            title = "Alege răspunsul",
+            detail = "Numărarea este refăcută. Ultimul număr e ancora.",
+            color = StarGold
+        )
+        state.operation == MathOperation.Subtraction -> {
+            val movedCount = subtractionMovedTouchesFor(state, countedCount)
+            val remainingCounted = subtractionRemainingCountedFor(state, countedCount)
+            when {
+                movedCount < state.num2 -> RoundStepCue(
+                    badge = "-1",
+                    title = "Mută în cufăr",
+                    detail = "Atinge comoara luminoasă cu -1: $movedCount/${state.num2}.",
+                    color = RubyRed
+                )
+                remainingCounted < answer -> RoundStepCue(
+                    badge = "=",
+                    title = "Numără ce rămâne",
+                    detail = "Cele din cufăr nu se mai numără. Pe punte: $remainingCounted/$answer.",
+                    color = EmeraldGreen
+                )
+                else -> RoundStepCue(
+                    badge = answer.toString(),
+                    title = "Alege răspunsul",
+                    detail = "${state.num1} minus ${state.num2}: pe punte rămân $answer.",
+                    color = StarGold
+                )
+            }
+        }
+        remainingTouches > 0 -> RoundStepCue(
+            badge = (countedCount + 1).toString(),
+            title = "Atinge comoara",
+            detail = "Numărăm în ordine: $countedCount/$totalItems atinse.",
+            color = CoralBlue
+        )
+        else -> RoundStepCue(
+            badge = answer.toString(),
+            title = "Alege răspunsul",
+            detail = "Ultimul număr citit este totalul sigur.",
+            color = StarGold
+        )
     }
 }
 
@@ -1800,7 +1891,9 @@ internal fun ProblemStage(
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            RoundStepCueStrip(cue = roundStepCueFor(state, countedItems.size))
+            Spacer(modifier = Modifier.height(14.dp))
             if (state.operation == MathOperation.Subtraction) {
                 SubtractionActionStage(
                     state = state,
@@ -1991,6 +2084,55 @@ private fun SubtractionStepPill(
         ) {
             Text(label, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.Black)
+        }
+    }
+}
+
+@Composable
+private fun RoundStepCueStrip(cue: RoundStepCue) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = cue.color.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, cue.color.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(54.dp),
+                shape = RoundedCornerShape(17.dp),
+                color = cue.color.copy(alpha = 0.24f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.44f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = cue.badge,
+                        color = Color.White,
+                        fontSize = if (cue.badge.length <= 2) 24.sp else 19.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cue.title,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 18.sp
+                )
+                Text(
+                    text = cue.detail,
+                    color = TextSandy,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 15.sp
+                )
+            }
         }
     }
 }
@@ -2231,12 +2373,12 @@ private fun InteractiveItemGrid(
         else -> 4
     }
     val itemSize = when {
-        wideLayout && count <= 4 -> 66.dp
-        wideLayout && count <= 8 -> 52.dp
-        wideLayout -> 44.dp
-        count <= 4 -> 56.dp
-        count <= 8 -> 38.dp
-        else -> 34.dp
+        wideLayout && count <= 4 -> 72.dp
+        wideLayout && count <= 8 -> 58.dp
+        wideLayout -> 48.dp
+        count <= 4 -> 62.dp
+        count <= 8 -> 44.dp
+        else -> 38.dp
     }
     val rows = (count + columns - 1) / columns
 

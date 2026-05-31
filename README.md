@@ -41,6 +41,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - la scădere, copilul mută efectiv primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte
 - feedback haptic discret la atingerea obiectelor și la alegerea răspunsului, ca bucla să se simtă mai tactilă pe Android
 - ghid vizual pentru următorul obiect de atins, cu contur luminos și numărul pasului următor
+- panou vizual de pași pentru scădere: `-1 Mută în cufăr`, apoi `= Numără ce rămâne`, apoi alegerea răspunsului
 - numărarea avansează doar când este atins obiectul luminat, ca să reducă tapping-ul la întâmplare
 - micro-celebrare scurtă după răspuns corect: `Comoară +1`, streak și colecție, fără să rupă ritmul sesiunii
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale

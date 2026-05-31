@@ -26,6 +26,7 @@
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
 - Feedback tactil: fiecare atingere de obiect și fiecare alegere de răspuns declanșează haptic discret, ca acțiunile să se simtă fizice pe device.
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
+- Ghid vizual de scădere: runda afișează explicit faza curentă (`-1 Mută în cufăr`, `= Numără ce rămâne`, răspunsul final), ca minusul să fie o acțiune concretă, nu doar o formulă.
 - Continuitate între sesiuni: aplicația salvează local comorile totale, sesiunile finalizate și recordul de streak.
 - Continuitate între zile: streak-ul zilnic, ultimul raport și `Jurnalul de căpitan` rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
@@ -99,6 +100,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: deblocarea răspunsurilor are test unitar separat, ca butoanele să rămână blocate până când toate obiectele vizibile au fost atinse.
 - QA tehnic: ghidul de numărare are test unitar separat pentru ordinea stânga-dreapta a obiectelor vizibile.
 - QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
+- QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.

@@ -226,6 +226,28 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun roundStepCueGuidesAdditionWithoutExtraReading() {
+        val state = GameState(num1 = 2, num2 = 3, operation = MathOperation.Addition)
+
+        assertEquals("1", roundStepCueFor(state, countedCount = 0).badge)
+        assertEquals("Atinge comoara", roundStepCueFor(state, countedCount = 0).title)
+        assertEquals("5", roundStepCueFor(state, countedCount = 5).badge)
+        assertEquals("Alege răspunsul", roundStepCueFor(state, countedCount = 5).title)
+    }
+
+    @Test
+    fun roundStepCueShowsSubtractionAsMoveThenRemainder() {
+        val state = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals("-1", roundStepCueFor(state, countedCount = 0).badge)
+        assertEquals("Mută în cufăr", roundStepCueFor(state, countedCount = 0).title)
+        assertEquals("=", roundStepCueFor(state, countedCount = 2).badge)
+        assertEquals("Numără ce rămâne", roundStepCueFor(state, countedCount = 2).title)
+        assertEquals("3", roundStepCueFor(state, countedCount = 5).badge)
+        assertEquals("Alege răspunsul", roundStepCueFor(state, countedCount = 5).title)
+    }
+
+    @Test
     fun dailyRingProgressIsClampedAndSafe() {
         assertEquals(0f, dailyRingProgress(current = 5, total = 0), 0.001f)
         assertEquals(0f, dailyRingProgress(current = -2, total = 10), 0.001f)
