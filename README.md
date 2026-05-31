@@ -52,7 +52,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - ghid vizual pentru următorul obiect de atins, cu contur luminos și numărul pasului următor
 - panou vizual de pași pentru scădere: `-1 Mută în cufăr`, apoi `= Numără ce rămâne`, apoi alegerea răspunsului
 - numărarea avansează doar când este atins obiectul luminat, ca să reducă tapping-ul la întâmplare
-- micro-celebrare scurtă după răspuns corect: `Comoară +1`, sparkle, monede care zboară spre cufăr, streak și progres spre următoarea recompensă, fără să rupă ritmul sesiunii
+- micro-celebrare scurtă după răspuns corect: `Comoară +1`, sparkle, monede care zboară spre cufăr, surpriză de pe hartă, streak și progres spre următoarea recompensă, fără să rupă ritmul sesiunii
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale
 - `Parent Dash` cu semnal de potrivire a dificultății, după logica din PDF: peste 95% poate fi prea ușor, sub 70% intră suportul
 - `Guess Guard` în Parent Dash: scor de eficiență inspirat de controlul de calitate/waste din PDF, bazat pe acuratețe, reparații și greșeli consecutive

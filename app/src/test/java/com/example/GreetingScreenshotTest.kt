@@ -237,6 +237,7 @@ class GreetingScreenshotTest {
   fun reward_burst_screenshot() {
     val state = GameState(
       streak = 3,
+      correctTotal = 4,
       lifetimeCoins = 10,
       isCorrecting = true
     )

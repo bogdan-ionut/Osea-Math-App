@@ -30,6 +30,13 @@ class ExampleUnitTest {
         assertEquals(9, visibleChestCoinCountFor(99))
         assertEquals(voyageSurpriseFor(0), voyageSurpriseFor(1))
         assertTrue(voyageSurpriseFor(4) != voyageSurpriseFor(0))
+        assertTrue(!isVoyageSurpriseMoment(1))
+        assertTrue(isVoyageSurpriseMoment(2))
+        assertEquals(2, coinsToNextVoyageSurprise(0))
+        assertEquals(1, coinsToNextVoyageSurprise(1))
+        assertEquals(0, coinsToNextVoyageSurprise(2))
+        assertEquals("descoperită acum", voyageSurpriseProgressTextFor(2))
+        assertEquals("1 comoară până la surpriză", voyageSurpriseProgressTextFor(1))
     }
 
     @Test

@@ -18,7 +18,7 @@
 - Struggle detector concret: după o reparare susținută, următoarea rundă devine `Port sigur`, cu adunări mici până la 4, ca materialul prea greu să fie înlocuit imediat cu bazele potrivite.
 - Selector adaptiv de operații: minusul apare doar după semnale bune la adunare, respectă challenge-ul maxim al părintelui și revine intenționat când scăderea are acuratețe scăzută.
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
-- Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, sparkle, monede care zboară spre cufăr, streak-ul și progresul către următoarea comoară, apoi jocul continuă automat.
+- Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, sparkle, monede care zboară spre cufăr, surpriza descoperită pe hartă, streak-ul și progresul către următoarea comoară, apoi jocul continuă automat.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
 - Audit părinte: un rezumat 2HL separat combină timp de lucru, calitate/eficiență și skill gap într-un semnal ușor de citit.
 - Jurnal pentru părinte: ultimele sesiuni rămân salvate local, cu trend simplu de acuratețe și nivel, ca progresul să nu fie doar „ultima sesiune”.
@@ -105,7 +105,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: `Audit părinte` este inclus în captura Parent Dash pentru timp, calitate și skill gap.
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
-- QA vizual Pixel 8: micro-recompensa `Comoară +1` are captură Roborazzi dedicată pentru sparkle și progresul către următoarea comoară.
+- QA vizual Pixel 8: micro-recompensa `Comoară +1` are captură Roborazzi dedicată pentru sparkle, zborul monedelor, surpriza de pe hartă și progresul către următoarea comoară.
 - QA vizual Pixel 8: `Harta Mastery` are acum traseu, corabie animată și badge de surpriză în captura principală.
 - QA vizual Pixel 8: `Reward Harbor` și micro-recompensa arată cufărul care se umple cu monede/nestemate, plus traseul scurt de zbor al comorii.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.
@@ -132,7 +132,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: scorul `Guess Guard` are test unitar pentru acuratețe, reparații, greșeli consecutive și etichete de calibrare/risc.
 - QA tehnic: progresul Daily Rings are test unitar pentru total zero, valori negative și depășirea țintei.
 - QA tehnic: harta de aventură are test unitar pentru insula activă, comorile rămase și progresul pe segment.
-- QA tehnic: surprizele de voiaj și cufărul vizual au test unitar pentru rotație și limitarea obiectelor desenate.
+- QA tehnic: surprizele de voiaj și cufărul vizual au test unitar pentru rotație, momentele de descoperire, textul de progres și limitarea obiectelor desenate.
 - QA tehnic: finalul time-box-ului are test unitar, ca pauza să apară doar când timpul s-a terminat și nu când ținta e deja celebrată.
 - QA tehnic: acuratețea per-skill are test unitar pentru semnal gol, progres normal și răspunsuri complet greșite.
 - QA vizual: previzualizarea rezultatului se află în `ProblemStage` și apare numai când numărarea este completă.

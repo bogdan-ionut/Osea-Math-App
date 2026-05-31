@@ -371,6 +371,24 @@ fun voyageSurpriseFor(correctTotal: Int): VoyageSurprise {
     return voyageSurprises[(safeTotal / 2) % voyageSurprises.size]
 }
 
+fun isVoyageSurpriseMoment(correctTotal: Int): Boolean {
+    return correctTotal > 0 && correctTotal % 2 == 0
+}
+
+fun coinsToNextVoyageSurprise(correctTotal: Int): Int {
+    val safeTotal = correctTotal.coerceAtLeast(0)
+    return if (isVoyageSurpriseMoment(safeTotal)) 0 else 2 - (safeTotal % 2)
+}
+
+fun voyageSurpriseProgressTextFor(correctTotal: Int): String {
+    val coinsToSurprise = coinsToNextVoyageSurprise(correctTotal)
+    return if (coinsToSurprise == 0) {
+        "descoperită acum"
+    } else {
+        "$coinsToSurprise ${if (coinsToSurprise == 1) "comoară" else "comori"} până la surpriză"
+    }
+}
+
 fun visibleChestCoinCountFor(lifetimeCoins: Int): Int {
     if (lifetimeCoins <= 0) return 0
     return (lifetimeCoins / 2 + 1).coerceIn(1, 9)
@@ -4140,6 +4158,12 @@ internal fun CorrectRewardBurst(state: GameState) {
                 Spacer(modifier = Modifier.height(6.dp))
                 FlyingTreasureTrail()
                 Spacer(modifier = Modifier.height(8.dp))
+                VoyageSurpriseRewardCard(
+                    surprise = voyageSurpriseFor(state.correctTotal),
+                    discovered = isVoyageSurpriseMoment(state.correctTotal),
+                    progressText = voyageSurpriseProgressTextFor(state.correctTotal)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = Color.White.copy(alpha = 0.08f),
@@ -4260,6 +4284,65 @@ private fun FlyingTreasureTrail() {
             fontSize = 9.sp,
             fontWeight = FontWeight.Black
         )
+    }
+}
+
+@Composable
+private fun VoyageSurpriseRewardCard(
+    surprise: VoyageSurprise,
+    discovered: Boolean,
+    progressText: String
+) {
+    val accent = if (discovered) surprise.color else CoralBlue
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = accent.copy(alpha = if (discovered) 0.18f else 0.1f),
+        border = BorderStroke(1.dp, accent.copy(alpha = if (discovered) 0.58f else 0.32f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White.copy(alpha = 0.16f))
+                    .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = surprise.drawableRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize().padding(4.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (discovered) "Surpriză pe hartă!" else "Următoarea surpriză",
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = "${surprise.title} · $progressText",
+                    color = TextSandy.copy(alpha = 0.82f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp
+                )
+            }
+            Text(
+                text = if (discovered) "găsit" else "în drum",
+                color = accent,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.End
+            )
+        }
     }
 }
 
