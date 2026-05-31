@@ -64,6 +64,66 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun weeklyParentSummaryAggregatesSevenRecentSessions() {
+        val history = listOf(
+            SessionRecord(dayIndex = 17, minutes = 12, accuracy = 90, repairs = 0, coins = 8, difficulty = 3),
+            SessionRecord(dayIndex = 16, minutes = 10, accuracy = 80, repairs = 1, coins = 8, difficulty = 2),
+            SessionRecord(dayIndex = 15, minutes = 9, accuracy = 70, repairs = 2, coins = 7, difficulty = 2),
+            SessionRecord(dayIndex = 14, minutes = 8, accuracy = 60, repairs = 2, coins = 6, difficulty = 2),
+            SessionRecord(dayIndex = 13, minutes = 11, accuracy = 85, repairs = 1, coins = 8, difficulty = 3),
+            SessionRecord(dayIndex = 12, minutes = 10, accuracy = 95, repairs = 0, coins = 8, difficulty = 3),
+            SessionRecord(dayIndex = 11, minutes = 7, accuracy = 75, repairs = 1, coins = 6, difficulty = 2),
+            SessionRecord(dayIndex = 10, minutes = 99, accuracy = 1, repairs = 9, coins = 99, difficulty = 5)
+        )
+
+        val summary = weeklyParentSummaryFor(history)
+
+        assertEquals(7, summary.sessions)
+        assertEquals(67, summary.minutes)
+        assertEquals(79, summary.averageAccuracy)
+        assertEquals(7, summary.repairs)
+        assertEquals(51, summary.coins)
+        assertEquals(3, summary.highestDifficulty)
+        assertEquals("În urcare", summary.trend)
+    }
+
+    @Test
+    fun weeklyParentNudgeHighlightsSupportOrStableProgress() {
+        assertEquals(
+            "Pornește cu presetul de 4 ani și urmărește primele 3 sesiuni.",
+            weeklyParentNudgeFor(weeklyParentSummaryFor(emptyList()))
+        )
+        assertEquals(
+            "Săptămâna cere suport: păstrează Port sigur și comori mici.",
+            weeklyParentNudgeFor(
+                WeeklyParentSummary(
+                    sessions = 3,
+                    minutes = 20,
+                    averageAccuracy = 62,
+                    repairs = 2,
+                    coins = 12,
+                    highestDifficulty = 2,
+                    trend = "De sprijinit"
+                )
+            )
+        )
+        assertEquals(
+            "Ritm bun: păstrează sesiunile scurte și lasă speed bump-ul să urce.",
+            weeklyParentNudgeFor(
+                WeeklyParentSummary(
+                    sessions = 5,
+                    minutes = 54,
+                    averageAccuracy = 91,
+                    repairs = 1,
+                    coins = 40,
+                    highestDifficulty = 3,
+                    trend = "În urcare"
+                )
+            )
+        )
+    }
+
+    @Test
     fun parentNextStepHighlightsTheMostUsefulLearningAction() {
         assertEquals(
             "Mâine: 8 comori, nivel ușor și numărare ghidată, ca să reducem ghicitul.",

@@ -148,6 +148,16 @@ data class SessionRecord(
     val difficulty: Int
 )
 
+data class WeeklyParentSummary(
+    val sessions: Int,
+    val minutes: Int,
+    val averageAccuracy: Int,
+    val repairs: Int,
+    val coins: Int,
+    val highestDifficulty: Int,
+    val trend: String
+)
+
 data class RoundFocus(
     val title: String,
     val goal: String
@@ -637,7 +647,7 @@ fun learningEfficiencyLabel(score: Int, attempts: Int): String {
 fun appendSessionRecord(
     history: List<SessionRecord>,
     record: SessionRecord,
-    limit: Int = 4
+    limit: Int = 7
 ): List<SessionRecord> {
     return (listOf(record) + history).take(limit.coerceAtLeast(1))
 }
@@ -651,6 +661,41 @@ fun sessionJournalTrendLabel(history: List<SessionRecord>): String {
         latest >= previousAverage + 5 -> "În urcare"
         latest + 5 < previousAverage -> "De sprijinit"
         else -> "Stabil"
+    }
+}
+
+fun weeklyParentSummaryFor(history: List<SessionRecord>): WeeklyParentSummary {
+    val week = history.take(7)
+    if (week.isEmpty()) {
+        return WeeklyParentSummary(
+            sessions = 0,
+            minutes = 0,
+            averageAccuracy = 100,
+            repairs = 0,
+            coins = 0,
+            highestDifficulty = 1,
+            trend = "Fără istoric"
+        )
+    }
+
+    return WeeklyParentSummary(
+        sessions = week.size,
+        minutes = week.sumOf { it.minutes },
+        averageAccuracy = (week.sumOf { it.accuracy } / week.size).coerceIn(0, 100),
+        repairs = week.sumOf { it.repairs },
+        coins = week.sumOf { it.coins },
+        highestDifficulty = week.maxOf { it.difficulty },
+        trend = sessionJournalTrendLabel(week)
+    )
+}
+
+fun weeklyParentNudgeFor(summary: WeeklyParentSummary): String {
+    return when {
+        summary.sessions == 0 -> "Pornește cu presetul de 4 ani și urmărește primele 3 sesiuni."
+        summary.averageAccuracy < 70 -> "Săptămâna cere suport: păstrează Port sigur și comori mici."
+        summary.repairs >= summary.sessions * 2 -> "Multe reparări: redu ținta și păstrează numărarea ghidată."
+        summary.averageAccuracy >= 90 && summary.highestDifficulty >= 3 -> "Ritm bun: păstrează sesiunile scurte și lasă speed bump-ul să urce."
+        else -> "Ritmul e stabil: urmărește skill gap-ul înainte de a crește nivelul."
     }
 }
 
@@ -1346,7 +1391,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadSessionHistory(): List<SessionRecord> {
-        val count = progressStore.getInt("sessionHistoryCount", 0).coerceIn(0, 4)
+        val count = progressStore.getInt("sessionHistoryCount", 0).coerceIn(0, 7)
         return (0 until count).mapNotNull { index ->
             val prefix = "sessionHistory_${index}_"
             val minutes = progressStore.getInt("${prefix}minutes", -1)
@@ -1366,9 +1411,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun saveSessionHistory(history: List<SessionRecord>) {
-        val boundedHistory = history.take(4)
+        val boundedHistory = history.take(7)
         val editor = progressStore.edit().putInt("sessionHistoryCount", boundedHistory.size)
-        repeat(4) { index ->
+        repeat(7) { index ->
             val prefix = "sessionHistory_${index}_"
             val record = boundedHistory.getOrNull(index)
             if (record == null) {
@@ -4620,6 +4665,7 @@ private fun LastSessionSummary(state: GameState) {
 
 @Composable
 private fun SessionJournal(history: List<SessionRecord>) {
+    val weeklySummary = weeklyParentSummaryFor(history)
     Column {
         Spacer(modifier = Modifier.height(10.dp))
         Surface(
@@ -4649,6 +4695,8 @@ private fun SessionJournal(history: List<SessionRecord>) {
                     )
                 }
                 Spacer(modifier = Modifier.height(6.dp))
+                WeeklySummaryRow(summary = weeklySummary)
+                Spacer(modifier = Modifier.height(6.dp))
                 history.take(3).forEachIndexed { index, record ->
                     SessionJournalRow(index = index, record = record)
                     if (index < history.take(3).lastIndex) {
@@ -4656,6 +4704,46 @@ private fun SessionJournal(history: List<SessionRecord>) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeeklySummaryRow(summary: WeeklyParentSummary) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White.copy(alpha = 0.07f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Săptămâna",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    "${summary.sessions} sesiuni · ${summary.minutes}m · ${summary.averageAccuracy}%",
+                    color = if (summary.averageAccuracy >= 85) EmeraldGreen else if (summary.averageAccuracy < 70) RubyRed else StarGold,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.End
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                weeklyParentNudgeFor(summary),
+                color = TextSandy.copy(alpha = 0.76f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 11.sp
+            )
         }
     }
 }

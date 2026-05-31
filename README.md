@@ -31,6 +31,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - progres local persistent: comori totale, sesiuni completate și record personal
 - streak zilnic și ultimul raport de sesiune salvate local pentru Parent Dash
 - `Jurnal de căpitan` în Parent Dash cu ultimele sesiuni, trend de acuratețe și nivelul atins
+- sumar săptămânal în Parent Dash: sesiuni, minute, acuratețe medie și recomandare scurtă
 - `Audit părinte` în Parent Dash: timp de lucru, calitate/eficiență și skill gap, inspirat de raportarea din PDF
 - setări părinte persistente, pliate în Parent Dash, pentru țintă zilnică, minute de sesiune și challenge maxim
 - colecție de recompense deblocată treptat, ca Oséa să revină la propria aventură
