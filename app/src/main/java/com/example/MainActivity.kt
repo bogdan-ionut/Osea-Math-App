@@ -243,7 +243,11 @@ private val treasureItems = listOf(
     PirateItem("sticlă", "sticle", "cu mesaj secret", Color(0xFF6EC6FF), TreasureShape.Spyglass, R.drawable.item_message_bottle),
     PirateItem("scoică", "scoici", "cu perle mari", Color(0xFFF8BBD0), TreasureShape.Shell, R.drawable.item_pearl_shell),
     PirateItem("sextant", "sextante", "de navigator", Color(0xFFD7A64A), TreasureShape.Compass, R.drawable.item_sextant),
-    PirateItem("steag", "steaguri", "de comoară", Color(0xFFFFD54F), TreasureShape.Map, R.drawable.item_pirate_flag)
+    PirateItem("steag", "steaguri", "de comoară", Color(0xFFFFD54F), TreasureShape.Map, R.drawable.item_pirate_flag),
+    PirateItem("pălărie", "pălării", "de căpitan", Color(0xFFFF8A65), TreasureShape.Key, R.drawable.item_captain_hat),
+    PirateItem("clopot", "clopote", "de corabie", Color(0xFFFFC857), TreasureShape.Coin, R.drawable.item_ship_bell),
+    PirateItem("frânghie", "frânghii", "de punte", Color(0xFFD7A64A), TreasureShape.Anchor, R.drawable.item_rope_coil),
+    PirateItem("coroană", "coroane", "cu nestemate", Color(0xFFFFD54F), TreasureShape.Gem, R.drawable.item_jewel_crown)
 )
 
 private val learningIslands = listOf(
@@ -263,7 +267,11 @@ private val voyageSurprises = listOf(
     VoyageSurprise("Sticlă cu mesaj", "aduce un indiciu nou", R.drawable.item_message_bottle, Color(0xFF6EC6FF)),
     VoyageSurprise("Scoică regală", "ascunde perle", R.drawable.item_pearl_shell, Color(0xFFF8BBD0)),
     VoyageSurprise("Sextant de aur", "măsoară drumul", R.drawable.item_sextant, Color(0xFFD7A64A)),
-    VoyageSurprise("Steag de comoară", "marchează ruta", R.drawable.item_pirate_flag, Color(0xFFFFD54F))
+    VoyageSurprise("Steag de comoară", "marchează ruta", R.drawable.item_pirate_flag, Color(0xFFFFD54F)),
+    VoyageSurprise("Pălărie de căpitan", "Oséa conduce corabia", R.drawable.item_captain_hat, Color(0xFFFF8A65)),
+    VoyageSurprise("Clopot de port", "sună victoria", R.drawable.item_ship_bell, Color(0xFFFFC857)),
+    VoyageSurprise("Frânghie magică", "leagă drumul bun", R.drawable.item_rope_coil, Color(0xFFD7A64A)),
+    VoyageSurprise("Coroana comorii", "strălucește în cufăr", R.drawable.item_jewel_crown, Color(0xFFFFD54F))
 )
 
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
@@ -335,7 +343,7 @@ fun learningIslandDrawableFor(index: Int): Int {
         0 -> R.drawable.item_anchor
         1 -> R.drawable.item_gold_coin
         2 -> R.drawable.item_treasure_chest
-        else -> R.drawable.item_pirate_flag
+        else -> R.drawable.item_jewel_crown
     }
 }
 
@@ -400,6 +408,15 @@ fun voyageSurpriseProgressTextFor(correctTotal: Int): String {
 fun visibleChestCoinCountFor(lifetimeCoins: Int): Int {
     if (lifetimeCoins <= 0) return 0
     return (lifetimeCoins / 2 + 1).coerceIn(1, 9)
+}
+
+fun celebrationTreasureRankFor(accuracy: Int, repairRounds: Int): String {
+    return when {
+        accuracy >= 95 && repairRounds == 0 -> "Comoara legendară"
+        accuracy >= 85 -> "Comoara sigură"
+        repairRounds > 0 -> "Comoara reparată"
+        else -> "Comoara găsită"
+    }
 }
 
 fun rewardBurstSummaryFor(state: GameState): RewardBurstSummary {
@@ -5769,139 +5786,445 @@ private fun ParentMetric(label: String, value: String) {
 fun CelebrationScreen(state: GameState, onPlayAgain: () -> Unit) {
     val accuracy = if (state.attemptsTotal == 0) 100 else (state.correctTotal * 100 / state.attemptsTotal)
     val minutes = maxOf(1, state.sessionSecondsElapsed / 60)
-    Column(
+    val totalMinutes = maxOf(1, state.sessionSecondsTotal / 60)
+    val rank = celebrationTreasureRankFor(accuracy = accuracy, repairRounds = state.repairRounds)
+    val finalSurprise = voyageSurpriseFor(state.correctTotal.coerceAtLeast(state.dailyTarget))
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF082B3B),
+                        Color(0xFF0E5360),
+                        Color(0xFF2D1E16)
+                    )
+                )
+            )
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(horizontal = 18.dp, vertical = 20.dp)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.img_celebration_1779722834900),
-            contentDescription = "Comoară de celebrare",
-            modifier = Modifier.size(230.dp),
-            contentScale = ContentScale.Fit
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        Text(
-            text = "Comoara Mastery!",
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Black,
-            color = StarGold,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Oséa, ai terminat ținta de azi.",
-            fontSize = 23.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "O sesiune scurtă, clară și cu adevărat stăpânită.",
-            fontSize = 16.sp,
-            color = TextSandy,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(18.dp))
-        Surface(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = Color(0xFF123343).copy(alpha = 0.9f),
-            border = BorderStroke(1.dp, StarGold.copy(alpha = 0.4f))
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            CelebrationHeroStage(
+                state = state,
+                rank = rank,
+                accuracy = accuracy
+            )
+            TreasureVoyageMap(
+                correctTotal = state.dailyTarget,
+                dailyTarget = state.dailyTarget,
+                activeIslandIndex = learningIslands.lastIndex,
+                surprise = finalSurprise
+            )
+            CelebrationLootShelf(surprise = finalSurprise)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    CelebrationMetric(
-                        title = "Minute",
-                        value = "$minutes",
-                        detail = "din 25",
+                    CelebrationTreasureMetric(
+                        title = "Timp",
+                        value = "$minutes/$totalMinutes",
+                        detail = "minute focus",
                         color = CoralBlue,
+                        drawableRes = R.drawable.item_ship_bell,
                         modifier = Modifier.weight(1f)
                     )
-                    CelebrationMetric(
-                        title = "Acuratețe",
+                    CelebrationTreasureMetric(
+                        title = "Siguranță",
                         value = "$accuracy%",
-                        detail = "mastery",
+                        detail = "fără grabă",
                         color = EmeraldGreen,
+                        drawableRes = R.drawable.item_compass,
                         modifier = Modifier.weight(1f)
                     )
                 }
-                Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    CelebrationMetric(
+                    CelebrationTreasureMetric(
                         title = "Reparări",
                         value = state.repairRounds.toString(),
-                        detail = "cu coach",
+                        detail = "calm",
                         color = if (state.repairRounds == 0) EmeraldGreen else StarGold,
+                        drawableRes = R.drawable.item_shovel,
                         modifier = Modifier.weight(1f)
                     )
-                    CelebrationMetric(
-                        title = "Colecție",
+                    CelebrationTreasureMetric(
+                        title = "Cufăr",
                         value = state.lifetimeCoins.toString(),
                         detail = "comori",
                         color = StarGold,
+                        drawableRes = R.drawable.item_treasure_chest,
                         modifier = Modifier.weight(1f)
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color.White.copy(alpha = 0.08f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Streak zilnic: ${state.dailyStreak} zile",
-                            color = StarGold,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = when {
-                                accuracy >= 95 -> "Ritmul a fost foarte sigur. Următoarea sesiune poate urca ușor nivelul."
-                                accuracy < 70 -> "Azi am reparat calm. Următoarea sesiune începe mai ușor, cu numărare ghidată."
-                                else -> "Sesiunea a fost potrivită: suficient de grea ca să învețe, suficient de clară ca să rămână motivat."
-                            },
-                            color = TextSandy,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            lineHeight = 16.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+            }
+            TreasureChestMeter(
+                lifetimeCoins = state.lifetimeCoins + state.correctTotal,
+                bestStreak = state.bestStreak
+            )
+            CelebrationCaptainNote(
+                accuracy = accuracy,
+                repairRounds = state.repairRounds,
+                dailyStreak = state.dailyStreak
+            )
+            Button(
+                onClick = onPlayAgain,
+                colors = ButtonDefaults.buttonColors(containerColor = StarGold),
+                shape = RoundedCornerShape(22.dp),
+                modifier = Modifier
+                    .height(62.dp)
+                    .fillMaxWidth(0.88f)
+            ) {
+                Text(
+                    text = "Pornește următoarea hartă",
+                    fontSize = 18.sp,
+                    color = OceanBg,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+    }
+}
+
+@Composable
+private fun CelebrationHeroStage(
+    state: GameState,
+    rank: String,
+    accuracy: Int
+) {
+    val transition = rememberInfiniteTransition(label = "celebrationHero")
+    val shipBob by transition.animateFloat(
+        initialValue = -4f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "celebrationShipBob"
+    )
+    val glow by transition.animateFloat(
+        initialValue = 0.45f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "celebrationGlow"
+    )
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(308.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color(0xFF123C3F))
+            .border(1.dp, StarGold.copy(alpha = 0.28f), RoundedCornerShape(28.dp))
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRoundRect(
+                brush = Brush.linearGradient(
+                    listOf(
+                        Color(0xFF0B5E68),
+                        Color(0xFF164D5A),
+                        Color(0xFF7A5229)
+                    )
+                ),
+                size = size,
+                cornerRadius = CornerRadius(28.dp.toPx(), 28.dp.toPx())
+            )
+            drawCircle(
+                color = StarGold.copy(alpha = 0.14f + glow * 0.1f),
+                radius = size.minDimension * 0.48f,
+                center = Offset(size.width * 0.5f, size.height * 0.62f)
+            )
+            drawOval(
+                color = Color(0xFFE0B760).copy(alpha = 0.8f),
+                topLeft = Offset(size.width * 0.16f, size.height * 0.72f),
+                size = Size(size.width * 0.68f, size.height * 0.18f)
+            )
+            val route = listOf(
+                Offset(size.width * 0.14f, size.height * 0.58f),
+                Offset(size.width * 0.38f, size.height * 0.44f),
+                Offset(size.width * 0.62f, size.height * 0.54f),
+                Offset(size.width * 0.84f, size.height * 0.32f)
+            )
+            route.zipWithNext().forEach { (start, end) ->
+                drawLine(
+                    color = Color.White.copy(alpha = 0.24f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 8f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.72f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 3.4f,
+                    cap = StrokeCap.Round
+                )
+            }
+            listOf(
+                Offset(size.width * 0.12f, size.height * 0.2f),
+                Offset(size.width * 0.28f, size.height * 0.34f),
+                Offset(size.width * 0.74f, size.height * 0.18f),
+                Offset(size.width * 0.88f, size.height * 0.52f),
+                Offset(size.width * 0.55f, size.height * 0.28f)
+            ).forEachIndexed { index, point ->
+                val radius = if (index % 2 == 0) 7f else 5f
+                drawLine(
+                    color = StarGold.copy(alpha = 0.42f + glow * 0.34f),
+                    start = Offset(point.x - radius, point.y),
+                    end = Offset(point.x + radius, point.y),
+                    strokeWidth = 2.4f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.42f + glow * 0.34f),
+                    start = Offset(point.x, point.y - radius),
+                    end = Offset(point.x, point.y + radius),
+                    strokeWidth = 2.4f,
+                    cap = StrokeCap.Round
+                )
             }
         }
-        Spacer(modifier = Modifier.height(22.dp))
-        Button(
-            onClick = onPlayAgain,
-            colors = ButtonDefaults.buttonColors(containerColor = StarGold),
-            shape = RoundedCornerShape(22.dp),
+        Image(
+            painter = painterResource(id = R.drawable.item_treasure_map),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
-                .height(64.dp)
-                .fillMaxWidth(0.84f)
+                .size(126.dp)
+                .align(Alignment.CenterStart)
+                .offset(x = (-18).dp, y = 18.dp)
+                .alpha(0.3f)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.item_ship),
+            contentDescription = "Corabia ajunge la comoară",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(78.dp)
+                .align(Alignment.CenterStart)
+                .offset(x = 18.dp, y = (shipBob + 30f).dp)
+        )
+        ChestTreasurePile(
+            lifetimeCoins = state.lifetimeCoins + state.correctTotal,
+            modifier = Modifier
+                .size(width = 184.dp, height = 128.dp)
+                .align(Alignment.BottomCenter)
+                .offset(y = (-4).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.item_jewel_crown),
+            contentDescription = "Coroana comorii",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(88.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = (-10).dp, y = (-18).dp)
+                .scale(0.96f + glow * 0.08f)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.item_captain_hat),
+            contentDescription = "Pălărie de căpitan",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(78.dp)
+                .align(Alignment.BottomStart)
+                .offset(x = 8.dp, y = (-18).dp)
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = Color.Black.copy(alpha = 0.24f),
+                border = BorderStroke(1.dp, StarGold.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    text = rank,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                    color = StarGold,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Joacă încă o sesiune",
-                fontSize = 20.sp,
-                color = OceanBg,
-                fontWeight = FontWeight.Black
+                text = "Comoara zilei găsită!",
+                color = Color.White,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                lineHeight = 32.sp
             )
+            Text(
+                text = "Oséa a dus corabia până la X cu $accuracy% siguranță.",
+                color = TextSandy,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 16.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun CelebrationLootShelf(surprise: VoyageSurprise) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = Color.Black.copy(alpha = 0.18f),
+        border = BorderStroke(1.dp, StarGold.copy(alpha = 0.28f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CelebrationLootIcon(R.drawable.item_jewel_crown, "coroană", StarGold)
+            CelebrationLootIcon(R.drawable.item_ship_bell, "clopot", Color(0xFFFFC857))
+            CelebrationLootIcon(R.drawable.item_rope_coil, "frânghie", Color(0xFFD7A64A))
+            CelebrationLootIcon(surprise.drawableRes, "surpriză", surprise.color)
+        }
+    }
+}
+
+@Composable
+private fun CelebrationLootIcon(drawableRes: Int, label: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(70.dp)) {
+        Box(
+            modifier = Modifier
+                .size(54.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(color.copy(alpha = 0.16f))
+                .border(1.dp, color.copy(alpha = 0.42f), RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = drawableRes),
+                contentDescription = label,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize().padding(5.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            color = TextSandy,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun CelebrationTreasureMetric(
+    title: String,
+    value: String,
+    detail: String,
+    color: Color,
+    drawableRes: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.height(88.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = color.copy(alpha = 0.13f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.46f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White.copy(alpha = 0.13f))
+                    .border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = drawableRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize().padding(4.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                Text(detail, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CelebrationCaptainNote(
+    accuracy: Int,
+    repairRounds: Int,
+    dailyStreak: Int
+) {
+    val note = when {
+        accuracy >= 95 -> "Ritmul a fost foarte sigur. Următoarea hartă poate adăuga o provocare mică."
+        accuracy < 70 -> "Azi comoara a fost reparată calm. Următoarea hartă pornește cu numărare ghidată."
+        repairRounds > 0 -> "Foarte bine: greșeala s-a transformat în traseu de învățare, nu în grabă."
+        else -> "Sesiunea a fost potrivită: scurtă, clară și cu destulă aventură cât să rămână vie."
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.item_captain_hat),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(54.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Streak zilnic: $dailyStreak zile",
+                    color = StarGold,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = note,
+                    color = TextSandy,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 14.sp
+                )
+            }
         }
     }
 }

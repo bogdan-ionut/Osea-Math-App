@@ -44,7 +44,7 @@ class ExampleUnitTest {
         assertEquals(R.drawable.item_anchor, learningIslandDrawableFor(0))
         assertEquals(R.drawable.item_gold_coin, learningIslandDrawableFor(1))
         assertEquals(R.drawable.item_treasure_chest, learningIslandDrawableFor(2))
-        assertEquals(R.drawable.item_pirate_flag, learningIslandDrawableFor(99))
+        assertEquals(R.drawable.item_jewel_crown, learningIslandDrawableFor(99))
         assertEquals(voyageSurpriseFor(0), voyageSurpriseFor(1))
         assertTrue(voyageSurpriseFor(4) != voyageSurpriseFor(0))
         assertTrue(!isVoyageSurpriseMoment(1))
@@ -54,6 +54,14 @@ class ExampleUnitTest {
         assertEquals(0, coinsToNextVoyageSurprise(2))
         assertEquals("descoperită acum", voyageSurpriseProgressTextFor(2))
         assertEquals("1 comoară până la surpriză", voyageSurpriseProgressTextFor(1))
+    }
+
+    @Test
+    fun celebrationRankRewardsAccuracyAndCalmRepairs() {
+        assertEquals("Comoara legendară", celebrationTreasureRankFor(accuracy = 99, repairRounds = 0))
+        assertEquals("Comoara sigură", celebrationTreasureRankFor(accuracy = 88, repairRounds = 2))
+        assertEquals("Comoara reparată", celebrationTreasureRankFor(accuracy = 72, repairRounds = 1))
+        assertEquals("Comoara găsită", celebrationTreasureRankFor(accuracy = 72, repairRounds = 0))
     }
 
     @Test

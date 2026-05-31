@@ -96,3 +96,5 @@ Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.
 Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.
 Daily quests visual QA: `app/src/test/screenshots/captain_quest_board.png`.
 Reward burst visual QA: `app/src/test/screenshots/reward_burst.png`.
+Treasure celebration visual QA: `app/src/test/screenshots/celebration_treasure.png`.
+Generated item pack: captain hat, ship bell, rope coil, jeweled crown, message bottle, pearl shell, sextant, pirate flag.

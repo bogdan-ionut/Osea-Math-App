@@ -64,6 +64,29 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun celebration_treasure_screenshot() {
+    val state = GameState(
+      correctTotal = 12,
+      attemptsTotal = 13,
+      repairRounds = 1,
+      sessionSecondsElapsed = 9 * 60,
+      sessionSecondsTotal = 10 * 60,
+      dailyTarget = 12,
+      lifetimeCoins = 28,
+      bestStreak = 7,
+      dailyStreak = 4
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        CelebrationScreen(state = state, onPlayAgain = {})
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/celebration_treasure.png")
+  }
+
+  @Test
   fun onboarding_screenshot() {
     composeTestRule.setContent {
       MyApplicationTheme {
