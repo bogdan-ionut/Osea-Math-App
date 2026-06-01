@@ -185,6 +185,7 @@ enum class GameSoundCue {
     CountComplete,
     AnswerSelect,
     TreasureUnlock,
+    StreakSalute,
     Victory
 }
 
@@ -428,6 +429,7 @@ fun soundResourceFor(cue: GameSoundCue): Int {
         GameSoundCue.CountComplete -> R.raw.count_complete
         GameSoundCue.AnswerSelect -> R.raw.answer_select
         GameSoundCue.TreasureUnlock -> R.raw.treasure_unlock
+        GameSoundCue.StreakSalute -> R.raw.streak_salute
         GameSoundCue.Victory -> R.raw.victory_sound
     }
 }
@@ -464,6 +466,28 @@ fun rewardBurstSummaryFor(state: GameState): RewardBurstSummary {
         },
         progress = rewardProgressToNextFor(state.lifetimeCoins)
     )
+}
+
+fun streakComboTitleFor(streak: Int): String {
+    return when {
+        streak >= 6 -> "Furtună de comori!"
+        streak >= 4 -> "Salvă de căpitan!"
+        streak >= 2 -> "Combo pe punte!"
+        else -> "Tunul salută!"
+    }
+}
+
+fun streakComboDetailFor(streak: Int): String {
+    return when {
+        streak >= 6 -> "Oséa ține seria: $streak răspunsuri sigure."
+        streak >= 4 -> "Corabia prinde viteză cu $streak comori la rând."
+        streak >= 2 -> "$streak răspunsuri corecte la rând. Cufărul se umple."
+        else -> "Primul răspuns sigur pornește aventura."
+    }
+}
+
+fun streakComboCannonCountFor(streak: Int): Int {
+    return streak.coerceIn(1, 3)
 }
 
 fun captainQuestsFor(state: GameState): List<CaptainQuest> {
@@ -1598,7 +1622,8 @@ object OfflineAudioPlayer {
         R.raw.move_to_chest,
         R.raw.count_complete,
         R.raw.answer_select,
-        R.raw.treasure_unlock
+        R.raw.treasure_unlock,
+        R.raw.streak_salute
     )
 
     fun preloadEffects(context: android.content.Context) {
@@ -1817,6 +1842,12 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
     LaunchedEffect(state.isCorrecting) {
         if (state.isCorrecting) {
             OfflineAudioPlayer.play(context, correctRewardSoundResourceFor(state.correctTotal))
+            if (state.streak >= 2) {
+                launch {
+                    delay(180)
+                    OfflineAudioPlayer.playEffect(context, soundResourceFor(GameSoundCue.StreakSalute), volume = 0.5f)
+                }
+            }
             delay(1250)
             viewModel.nextQuestion()
         }
@@ -4789,6 +4820,8 @@ internal fun CorrectRewardBurst(state: GameState) {
                 Spacer(modifier = Modifier.height(6.dp))
                 FlyingTreasureTrail()
                 Spacer(modifier = Modifier.height(8.dp))
+                ComboCannonSalute(streak = state.streak)
+                Spacer(modifier = Modifier.height(8.dp))
                 VoyageSurpriseRewardCard(
                     surprise = voyageSurpriseFor(state.correctTotal),
                     discovered = isVoyageSurpriseMoment(state.correctTotal),
@@ -4834,6 +4867,152 @@ internal fun CorrectRewardBurst(state: GameState) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ComboCannonSalute(streak: Int) {
+    val cannonCount = streakComboCannonCountFor(streak)
+    val transition = rememberInfiniteTransition(label = "comboCannonSalute")
+    val recoil by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 760, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "comboCannonRecoil"
+    )
+    val flash = if (recoil < 0.34f) 1f - recoil / 0.34f else 0f
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFF2D1E16).copy(alpha = 0.46f),
+        border = BorderStroke(1.dp, StarGold.copy(alpha = 0.36f))
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(86.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        listOf(
+                            Color(0xFF0F3D4B).copy(alpha = 0.92f),
+                            Color(0xFF5E4325).copy(alpha = 0.56f),
+                            Color(0xFF143340).copy(alpha = 0.92f)
+                        )
+                    ),
+                    size = size,
+                    cornerRadius = CornerRadius(18.dp.toPx(), 18.dp.toPx())
+                )
+                val deckY = size.height * 0.82f
+                drawLine(
+                    color = Color.White.copy(alpha = 0.1f),
+                    start = Offset(size.width * 0.08f, deckY),
+                    end = Offset(size.width * 0.92f, deckY),
+                    strokeWidth = 7f,
+                    cap = StrokeCap.Round
+                )
+                repeat(cannonCount) { index ->
+                    val x = size.width * (0.12f + index * 0.085f)
+                    val smokeAlpha = (0.18f + flash * 0.42f).coerceIn(0f, 0.68f)
+                    drawCircle(
+                        color = Color.White.copy(alpha = smokeAlpha),
+                        radius = 8f + flash * 6f,
+                        center = Offset(x + 37f + flash * 8f, deckY - 26f - index * 3f)
+                    )
+                    drawCircle(
+                        color = StarGold.copy(alpha = 0.28f + flash * 0.52f),
+                        radius = 4f + flash * 7f,
+                        center = Offset(x + 50f + flash * 16f, deckY - 24f - index * 3f)
+                    )
+                }
+                listOf(
+                    Offset(size.width * 0.62f, size.height * 0.22f),
+                    Offset(size.width * 0.78f, size.height * 0.36f),
+                    Offset(size.width * 0.88f, size.height * 0.2f)
+                ).forEach { point ->
+                    val spark = 4f + flash * 4f
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.56f + flash * 0.34f),
+                        start = Offset(point.x - spark, point.y),
+                        end = Offset(point.x + spark, point.y),
+                        strokeWidth = 2.2f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.56f + flash * 0.34f),
+                        start = Offset(point.x, point.y - spark),
+                        end = Offset(point.x, point.y + spark),
+                        strokeWidth = 2.2f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 10.dp, end = 12.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                repeat(cannonCount) { index ->
+                    Image(
+                        painter = painterResource(id = R.drawable.item_cannon),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .offset(x = if (index == 0) (-4f * flash).dp else (-2f * flash).dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = streakComboTitleFor(streak),
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = streakComboDetailFor(streak),
+                        color = TextSandy,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 12.sp,
+                        maxLines = 2
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        painter = painterResource(id = R.drawable.item_pirate_flag),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Text(
+                        text = "x$streak",
+                        color = StarGold,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+            Image(
+                painter = painterResource(id = R.drawable.item_cannonballs),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 112.dp, bottom = 5.dp)
+                    .size(24.dp)
+                    .alpha(0.62f)
+            )
         }
     }
 }

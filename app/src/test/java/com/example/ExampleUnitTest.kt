@@ -67,6 +67,18 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun streakComboCopyScalesWithCorrectRun() {
+        assertEquals("Tunul salută!", streakComboTitleFor(1))
+        assertEquals("Combo pe punte!", streakComboTitleFor(2))
+        assertEquals("Salvă de căpitan!", streakComboTitleFor(4))
+        assertEquals("Furtună de comori!", streakComboTitleFor(6))
+        assertEquals(1, streakComboCannonCountFor(0))
+        assertEquals(2, streakComboCannonCountFor(2))
+        assertEquals(3, streakComboCannonCountFor(9))
+        assertEquals("3 răspunsuri corecte la rând. Cufărul se umple.", streakComboDetailFor(3))
+    }
+
+    @Test
     fun skillAccuracyHandlesEmptyAndNormalSignals() {
         assertEquals(100, skillAccuracy(correct = 0, attempts = 0))
         assertEquals(75, skillAccuracy(correct = 3, attempts = 4))
@@ -690,6 +702,7 @@ class ExampleUnitTest {
             "count_complete.wav",
             "count_tick.wav",
             "move_to_chest.wav",
+            "streak_salute.wav",
             "treasure_unlock.wav",
             "wrong_1.mp3",
             "wrong_2.mp3",
@@ -711,6 +724,7 @@ class ExampleUnitTest {
         assertEquals(R.raw.count_complete, soundResourceFor(GameSoundCue.CountComplete))
         assertEquals(R.raw.answer_select, soundResourceFor(GameSoundCue.AnswerSelect))
         assertEquals(R.raw.treasure_unlock, soundResourceFor(GameSoundCue.TreasureUnlock))
+        assertEquals(R.raw.streak_salute, soundResourceFor(GameSoundCue.StreakSalute))
         assertEquals(R.raw.victory_sound, soundResourceFor(GameSoundCue.Victory))
 
         assertEquals(R.raw.correct_1, correctRewardSoundResourceFor(1))
