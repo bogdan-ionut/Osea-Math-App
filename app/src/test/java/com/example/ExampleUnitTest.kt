@@ -70,6 +70,21 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun treasureDigStagesCycleThroughPremiumRewardMoment() {
+        assertEquals("Pânze sus", treasureDigStageFor(1).title)
+        assertEquals("X pe hartă", treasureDigStageFor(2).title)
+        assertEquals("Săpăm comoara", treasureDigStageFor(3).title)
+        assertEquals("Cufăr deschis", treasureDigStageFor(4).title)
+        assertEquals("Pânze sus", treasureDigStageFor(5).title)
+
+        assertEquals(0, treasureDigStageIndexFor(0))
+        assertEquals(0.25f, treasureDigStageProgressFor(1), 0.001f)
+        assertEquals(0.75f, treasureDigStageProgressFor(3), 0.001f)
+        assertEquals(1f, treasureDigStageProgressFor(4), 0.001f)
+        assertEquals(2, treasureDigChapterFor(5))
+    }
+
+    @Test
     fun celebrationRankRewardsAccuracyAndCalmRepairs() {
         assertEquals("Comoara legendară", celebrationTreasureRankFor(accuracy = 99, repairRounds = 0))
         assertEquals("Comoara sigură", celebrationTreasureRankFor(accuracy = 88, repairRounds = 2))

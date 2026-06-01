@@ -20,6 +20,7 @@
 - Selector adaptiv de operații: minusul apare doar după semnale bune la adunare, respectă challenge-ul maxim al părintelui și revine intenționat când scăderea are acuratețe scăzută.
 - Feedback auditiv și vizual imediat: audio-ul offline rămâne, împreună cu animații, mesaje de coaching și narațiune TTS on-device prin butonul `Ascultă`.
 - Recompensă imediată, scurtă: după un răspuns corect apare `Comoară +1`, sparkle, monede care zboară spre cufăr, surpriza descoperită pe hartă, streak-ul și progresul către următoarea comoară, apoi jocul continuă automat.
+- Micro-expediție după răspuns corect: recompensa trece prin pași vizuali scurți, cu corabie, X pe hartă, săpat și cufăr deschis, ca progresul să pară o aventură concretă.
 - Vizibilitate pentru părinte: `Parent Dash` rezumă minutele, acuratețea, focusul și nivelul curent fără să întrerupă copilul.
 - Audit părinte: un rezumat 2HL separat combină timp de lucru, calitate/eficiență și skill gap într-un semnal ușor de citit.
 - Jurnal pentru părinte: ultimele sesiuni rămân salvate local, cu trend simplu de acuratețe și nivel, ca progresul să nu fie doar „ultima sesiune”.
@@ -52,7 +53,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 5. Dacă are nevoie, apasă `Ascultă` și primește narațiune vocală pentru problemă, numărare sau reparare.
 6. Aplicația oferă un set mic de răspunsuri.
 7. Răspunsurile corecte umplu ținta zilnică și duc corabia pe hartă, segment cu segment, spre următorul port.
-8. Răspunsurile corecte primesc o micro-celebrare rapidă, apoi jocul continuă fără pauze lungi.
+8. Răspunsurile corecte primesc o micro-celebrare rapidă cu mini-expediție la X, apoi jocul continuă fără pauze lungi.
 9. Răspunsurile greșite activează coaching calm, nu pedeapsă.
 10. Micro-coach-ul afișează `Plan de reparare`: primul grup, al doilea grup și totalul corect, cu aceleași obiecte vizuale.
 11. Dacă apar două greșeli sau copilul se împiedică într-o rundă de suport, următoarea rundă intră în `Port sigur`: adunări mici, obiecte luminoase și țintă până la 4.
@@ -110,6 +111,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: `Port sigur` are captură Roborazzi dedicată, ca runda de recuperare să rămână clară și calmă.
 - QA vizual Pixel 8: `Reward Harbor` are captură Roborazzi dedicată pentru progresul către următorul obiect și rarități.
 - QA vizual Pixel 8: micro-recompensa `Comoară +1` are captură Roborazzi dedicată pentru sparkle, zborul monedelor, surpriza de pe hartă și progresul către următoarea comoară.
+- QA vizual Pixel 8: micro-expediția de recompensă are captură dedicată `treasure_dig_site.png`, pentru pașii corabie, hartă, săpat și cufăr.
 - QA vizual Pixel 8: `Harta Mastery` are acum traseu, corabie animată și badge de surpriză în captura principală.
 - QA vizual Pixel 8: `Reward Harbor` și micro-recompensa arată cufărul care se umple cu monede/nestemate, plus traseul scurt de zbor al comorii.
 - QA vizual Pixel 8: micro-coach-ul și `Learning Plan` compilează în aceeași buclă Compose și păstrează răspunsurile blocate până la numărare completă, inclusiv după o reparație.

@@ -385,6 +385,24 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun treasure_dig_site_screenshot() {
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          TreasureDigSiteCard(correctTotal = 3, lifetimeCoins = 14)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/treasure_dig_site.png")
+  }
+
+  @Test
   fun parent_dash_journal_screenshot() {
     val state = GameState(
       correctTotal = 9,

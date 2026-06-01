@@ -57,6 +57,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - panou vizual de pași pentru scădere: `-1 Mută în cufăr`, apoi `= Numără ce rămâne`, apoi alegerea răspunsului
 - numărarea avansează doar când este atins obiectul luminat, ca să reducă tapping-ul la întâmplare
 - micro-celebrare scurtă după răspuns corect: `Comoară +1`, sparkle, monede care zboară spre cufăr, surpriză de pe hartă, streak și progres spre următoarea recompensă, fără să rupă ritmul sesiunii
+- micro-scenă de expediție după răspuns corect: corabie, X pe hartă, săpat și cufăr deschis, în capitole vizuale scurte
 - ecran final de sesiune cu raport scurt: minute, acuratețe, reparări și comori totale
 - `Parent Dash` cu semnal de potrivire a dificultății, după logica din PDF: peste 95% poate fi prea ușor, sub 70% intră suportul
 - `Guess Guard` în Parent Dash: scor de eficiență inspirat de controlul de calitate/waste din PDF, bazat pe acuratețe, reparații și greșeli consecutive
@@ -99,6 +100,7 @@ Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.
 Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.
 Daily quests visual QA: `app/src/test/screenshots/captain_quest_board.png`.
 Reward burst visual QA: `app/src/test/screenshots/reward_burst.png`.
+Treasure dig site visual QA: `app/src/test/screenshots/treasure_dig_site.png`.
 Correct streak cannon salute QA is included in `app/src/test/screenshots/reward_burst.png`.
 Locked answer chests visual QA: `app/src/test/screenshots/locked_answer_chests.png`.
 Answer unlock banner visual QA: `app/src/test/screenshots/answer_unlock_banner.png`.

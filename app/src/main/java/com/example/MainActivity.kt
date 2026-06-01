@@ -267,6 +267,13 @@ data class MapRelic(
     val unlockCoins: Int
 )
 
+data class TreasureDigStage(
+    val title: String,
+    val detail: String,
+    val drawableRes: Int,
+    val color: Color
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -335,6 +342,13 @@ private val mapRelics = listOf(
     MapRelic("Butoiaș cu stea", "salut de pe punte", R.drawable.item_powder_keg, Color(0xFFD7A64A), unlockCoins = 4),
     MapRelic("Târnăcop de aur", "săpăm după X", R.drawable.item_treasure_pickaxe, Color(0xFFFFC857), unlockCoins = 6),
     MapRelic("Relicvă de smarald", "harta se aprinde", R.drawable.item_emerald_relic, Color(0xFF37D88B), unlockCoins = 8)
+)
+
+private val treasureDigStages = listOf(
+    TreasureDigStage("Pânze sus", "corabia pornește spre X", R.drawable.item_ship, CoralBlue),
+    TreasureDigStage("X pe hartă", "indiciul luminează nisipul", R.drawable.item_treasure_map, StarGold),
+    TreasureDigStage("Săpăm comoara", "târnăcopul eliberează cufărul", R.drawable.item_treasure_pickaxe, Color(0xFFFFA726)),
+    TreasureDigStage("Cufăr deschis", "prada intră în colecție", R.drawable.item_jewel_crown, EmeraldGreen)
 )
 
 private val answerChestTiers = listOf(
@@ -500,6 +514,25 @@ fun mapRelicStatusTextFor(correctTotal: Int): String {
         val remaining = (nextRelic.unlockCoins - correctTotal).coerceAtLeast(0)
         "$remaining ${if (remaining == 1) "comoară" else "comori"} până la ${nextRelic.title}"
     }
+}
+
+fun treasureDigStageIndexFor(correctTotal: Int): Int {
+    val safeTotal = correctTotal.coerceAtLeast(1)
+    return (safeTotal - 1).floorMod(treasureDigStages.size)
+}
+
+fun treasureDigStageFor(correctTotal: Int): TreasureDigStage {
+    return treasureDigStages[treasureDigStageIndexFor(correctTotal)]
+}
+
+fun treasureDigStageProgressFor(correctTotal: Int): Float {
+    val stageNumber = treasureDigStageIndexFor(correctTotal) + 1
+    return (stageNumber.toFloat() / treasureDigStages.size.toFloat()).coerceIn(0f, 1f)
+}
+
+fun treasureDigChapterFor(correctTotal: Int): Int {
+    val safeTotal = correctTotal.coerceAtLeast(1)
+    return ((safeTotal - 1) / treasureDigStages.size) + 1
 }
 
 fun visibleChestCoinCountFor(lifetimeCoins: Int): Int {
@@ -5314,6 +5347,11 @@ internal fun CorrectRewardBurst(state: GameState) {
                 Spacer(modifier = Modifier.height(6.dp))
                 FlyingTreasureTrail()
                 Spacer(modifier = Modifier.height(8.dp))
+                TreasureDigSiteCard(
+                    correctTotal = state.correctTotal,
+                    lifetimeCoins = state.lifetimeCoins
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 ComboCannonSalute(streak = state.streak)
                 Spacer(modifier = Modifier.height(8.dp))
                 VoyageSurpriseRewardCard(
@@ -5361,6 +5399,233 @@ internal fun CorrectRewardBurst(state: GameState) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun TreasureDigSiteCard(
+    correctTotal: Int,
+    lifetimeCoins: Int
+) {
+    val stage = treasureDigStageFor(correctTotal)
+    val stageIndex = treasureDigStageIndexFor(correctTotal)
+    val targetProgress = treasureDigStageProgressFor(correctTotal)
+    val animatedProgress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = spring(dampingRatio = 0.58f, stiffness = 160f),
+        label = "treasureDigProgress"
+    )
+    val transition = rememberInfiniteTransition(label = "treasureDigSite")
+    val shimmer by transition.animateFloat(
+        initialValue = 0.28f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 980, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "treasureDigShimmer"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = stage.color.copy(alpha = 0.13f),
+        border = BorderStroke(1.dp, stage.color.copy(alpha = 0.46f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    modifier = Modifier.size(42.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White.copy(alpha = 0.14f),
+                    border = BorderStroke(1.dp, stage.color.copy(alpha = 0.58f))
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = painterResource(id = stage.drawableRes),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize().padding(4.dp)
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stage.title,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 15.sp,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = stage.detail,
+                        color = TextSandy,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 12.sp,
+                        maxLines = 2
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.Black.copy(alpha = 0.18f),
+                    border = BorderStroke(1.dp, stage.color.copy(alpha = 0.42f))
+                ) {
+                    Text(
+                        text = "Cap. ${treasureDigChapterFor(correctTotal)}",
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
+                        color = StarGold,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(7.dp))
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(62.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black.copy(alpha = 0.16f))
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(16.dp))
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val y = size.height * 0.5f
+                    val startX = size.width * 0.11f
+                    val endX = size.width * 0.89f
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.18f),
+                        start = Offset(startX, y),
+                        end = Offset(endX, y),
+                        strokeWidth = 8f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = stage.color.copy(alpha = 0.42f + shimmer * 0.2f),
+                        start = Offset(startX, y),
+                        end = Offset(startX + (endX - startX) * animatedProgress, y),
+                        strokeWidth = 4f,
+                        cap = StrokeCap.Round
+                    )
+                    repeat(7) { index ->
+                        val t = (index + 1) / 8f
+                        drawCircle(
+                            color = StarGold.copy(alpha = 0.22f + shimmer * 0.18f),
+                            radius = 2.6f + shimmer,
+                            center = Offset(startX + (endX - startX) * t, y)
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    treasureDigStages.forEachIndexed { index, digStage ->
+                        TreasureDigMarker(
+                            stage = digStage,
+                            reached = index <= stageIndex,
+                            active = index == stageIndex
+                        )
+                    }
+                }
+                val travelWidth = (maxWidth - 58.dp).coerceAtLeast(70.dp)
+                val travelIcon = when {
+                    stageIndex == 0 -> R.drawable.item_ship
+                    stageIndex == 1 -> R.drawable.item_treasure_map
+                    stageIndex == 2 -> R.drawable.item_treasure_pickaxe
+                    else -> R.drawable.item_treasure_chest
+                }
+                Image(
+                    painter = painterResource(id = travelIcon),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = 8.dp + travelWidth * animatedProgress, y = 2.dp)
+                        .size(26.dp)
+                        .alpha(0.9f)
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Pas ${stageIndex + 1}/4 spre cufăr",
+                    color = TextSandy,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.item_gold_coin),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "$lifetimeCoins în cufăr",
+                        color = StarGold,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TreasureDigMarker(
+    stage: TreasureDigStage,
+    reached: Boolean,
+    active: Boolean
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (active) 1.12f else 1f,
+        animationSpec = spring(dampingRatio = 0.62f, stiffness = 320f),
+        label = "treasureDigMarker${stage.title}"
+    )
+    Surface(
+        modifier = Modifier
+            .scale(scale)
+            .size(if (active) 42.dp else 36.dp),
+        shape = CircleShape,
+        color = when {
+            active -> stage.color
+            reached -> stage.color.copy(alpha = 0.64f)
+            else -> Color.White.copy(alpha = 0.12f)
+        },
+        border = BorderStroke(
+            width = if (active) 2.dp else 1.dp,
+            color = if (active) StarGold else Color.White.copy(alpha = 0.26f)
+        )
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = stage.drawableRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(if (active) 5.dp else 6.dp)
+                    .alpha(if (reached) 1f else 0.36f)
+            )
         }
     }
 }
