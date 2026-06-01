@@ -194,6 +194,12 @@ data class CountingTrailSlot(
     val isCurrent: Boolean
 )
 
+data class AnswerChestTier(
+    val label: String,
+    val drawableRes: Int,
+    val color: Color
+)
+
 enum class GameSoundCue {
     CountTick,
     MoveToChest,
@@ -322,6 +328,13 @@ private val mapRelics = listOf(
     MapRelic("Butoiaș cu stea", "salut de pe punte", R.drawable.item_powder_keg, Color(0xFFD7A64A), unlockCoins = 4),
     MapRelic("Târnăcop de aur", "săpăm după X", R.drawable.item_treasure_pickaxe, Color(0xFFFFC857), unlockCoins = 6),
     MapRelic("Relicvă de smarald", "harta se aprinde", R.drawable.item_emerald_relic, Color(0xFF37D88B), unlockCoins = 8)
+)
+
+private val answerChestTiers = listOf(
+    AnswerChestTier("Cufăr aurit", R.drawable.item_gold_coin, StarGold),
+    AnswerChestTier("Cufăr smarald", R.drawable.item_emerald_relic, EmeraldGreen),
+    AnswerChestTier("Cufăr de hartă", R.drawable.item_treasure_map, CoralBlue),
+    AnswerChestTier("Cufăr regal", R.drawable.item_jewel_crown, Color(0xFFFF8A65))
 )
 
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
@@ -713,6 +726,14 @@ fun countingTrailTitleFor(state: GameState, countedCount: Int): String {
         countedCount < state.num1 -> "Primul grup"
         else -> "Al doilea grup"
     }
+}
+
+fun answerChestTierFor(index: Int): AnswerChestTier {
+    return answerChestTiers[index.floorMod(answerChestTiers.size)]
+}
+
+private fun Int.floorMod(modulus: Int): Int {
+    return ((this % modulus) + modulus) % modulus
 }
 
 fun remainingOnDeckCountFor(state: GameState): Int {
@@ -6070,6 +6091,7 @@ internal fun AnswerGrid(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             AnswerButton(
                 number = options[0],
+                tier = answerChestTierFor(0),
                 wrongAnswer = wrongAnswer,
                 isCorrecting = isCorrecting,
                 correctAnswer = correctAnswer,
@@ -6079,6 +6101,7 @@ internal fun AnswerGrid(
             )
             AnswerButton(
                 number = options[1],
+                tier = answerChestTierFor(1),
                 wrongAnswer = wrongAnswer,
                 isCorrecting = isCorrecting,
                 correctAnswer = correctAnswer,
@@ -6090,6 +6113,7 @@ internal fun AnswerGrid(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             AnswerButton(
                 number = options[2],
+                tier = answerChestTierFor(2),
                 wrongAnswer = wrongAnswer,
                 isCorrecting = isCorrecting,
                 correctAnswer = correctAnswer,
@@ -6099,6 +6123,7 @@ internal fun AnswerGrid(
             )
             AnswerButton(
                 number = options[3],
+                tier = answerChestTierFor(3),
                 wrongAnswer = wrongAnswer,
                 isCorrecting = isCorrecting,
                 correctAnswer = correctAnswer,
@@ -6113,6 +6138,7 @@ internal fun AnswerGrid(
 @Composable
 private fun AnswerButton(
     number: Int,
+    tier: AnswerChestTier,
     wrongAnswer: Int?,
     isCorrecting: Boolean,
     correctAnswer: Int,
@@ -6123,6 +6149,16 @@ private fun AnswerButton(
     val isWrong = wrongAnswer == number
     val isCorrect = isCorrecting && number == correctAnswer
     val isLocked = !isEnabled && !isCorrect && !isWrong
+    val transition = rememberInfiniteTransition(label = "answerChest${tier.label}")
+    val shimmer by transition.animateFloat(
+        initialValue = 0.12f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1180, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "answerChestShimmer${tier.label}"
+    )
     val bgColor by animateColorAsState(
         targetValue = when {
             isCorrect -> EmeraldGreen
@@ -6140,7 +6176,7 @@ private fun AnswerButton(
     val borderColor = when {
         isCorrect -> Color.White
         isWrong -> RubyRed.copy(alpha = 0.85f)
-        isEnabled -> StarGold.copy(alpha = 0.48f)
+        isEnabled -> tier.color.copy(alpha = 0.72f)
         else -> CoralBlue.copy(alpha = 0.28f)
     }
     val numberColor = when {
@@ -6168,6 +6204,7 @@ private fun AnswerButton(
                         listOf(
                             Color.White.copy(alpha = if (isEnabled) 0.16f else 0.06f),
                             bgColor.copy(alpha = 0.94f),
+                            tier.color.copy(alpha = if (isEnabled) 0.2f else 0.06f),
                             Color.Black.copy(alpha = 0.16f)
                         )
                     )
@@ -6241,6 +6278,13 @@ private fun AnswerButton(
                         )
                     }
                 }
+                if (isEnabled && !isWrong) {
+                    drawCircle(
+                        color = tier.color.copy(alpha = 0.12f + shimmer * 0.12f),
+                        radius = size.minDimension * 0.36f,
+                        center = Offset(size.width * 0.72f, size.height * 0.34f)
+                    )
+                }
             }
             if (isLocked) {
                 Image(
@@ -6251,6 +6295,16 @@ private fun AnswerButton(
                         .align(Alignment.Center)
                         .size(62.dp)
                         .alpha(0.72f)
+                )
+                Image(
+                    painter = painterResource(id = tier.drawableRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 9.dp, top = 8.dp)
+                        .size(26.dp)
+                        .alpha(0.34f)
                 )
                 Text(
                     text = "?",
@@ -6276,26 +6330,50 @@ private fun AnswerButton(
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(58.dp)
+                        .size(if (isCorrect) 72.dp else 62.dp)
                         .padding(end = 4.dp, bottom = 2.dp)
-                        .alpha(if (isEnabled || isCorrect || isWrong) 0.34f else 0.13f)
+                        .alpha(if (isEnabled || isCorrect || isWrong) 0.44f else 0.13f)
                 )
                 Image(
-                    painter = painterResource(id = R.drawable.item_gold_coin),
+                    painter = painterResource(id = tier.drawableRes),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .size(30.dp)
-                        .padding(start = 6.dp, top = 6.dp)
+                        .size(34.dp)
+                        .padding(start = 6.dp, top = 5.dp)
                         .alpha(if (isEnabled) 0.88f else 0.24f)
                 )
-                Text(
-                    text = number.toString(),
-                    color = numberColor,
-                    fontSize = 42.sp,
-                    fontWeight = FontWeight.Black
-                )
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = number.toString(),
+                        color = numberColor,
+                        fontSize = 42.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 44.sp
+                    )
+                    Text(
+                        text = when {
+                            isCorrect -> "deschis!"
+                            isWrong -> "reparăm"
+                            else -> tier.label
+                        },
+                        color = when {
+                            isCorrect -> StarGold
+                            isWrong -> Color.White
+                            else -> tier.color
+                        },
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
             }
             if (isWrong) {
                 Text(

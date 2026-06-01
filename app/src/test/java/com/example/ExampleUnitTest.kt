@@ -701,6 +701,17 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun answerChestTiersCycleAcrossFourChoices() {
+        assertEquals("Cufăr aurit", answerChestTierFor(0).label)
+        assertEquals("Cufăr smarald", answerChestTierFor(1).label)
+        assertEquals("Cufăr de hartă", answerChestTierFor(2).label)
+        assertEquals("Cufăr regal", answerChestTierFor(3).label)
+        assertEquals("Cufăr aurit", answerChestTierFor(4).label)
+        assertEquals("Cufăr regal", answerChestTierFor(-1).label)
+        assertEquals(R.drawable.item_emerald_relic, answerChestTierFor(1).drawableRes)
+    }
+
+    @Test
     fun guidedCountingOnlyAdvancesWhenTheHighlightedObjectIsTapped() {
         val empty = emptyMap<String, Int>()
         val first = nextCountedItemsAfterTap(
