@@ -666,6 +666,41 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun countingTrailShowsAdditionGroupsAndCurrentStep() {
+        val state = GameState(num1 = 2, num2 = 3, operation = MathOperation.Addition)
+        val slots = countingTrailSlotsFor(state, countedCount = 2)
+
+        assertEquals(5, slots.size)
+        assertEquals(listOf(CountingTrailRole.FirstGroup, CountingTrailRole.FirstGroup), slots.take(2).map { it.role })
+        assertEquals(
+            listOf(CountingTrailRole.SecondGroup, CountingTrailRole.SecondGroup, CountingTrailRole.SecondGroup),
+            slots.drop(2).map { it.role }
+        )
+        assertEquals(true, slots[1].isCounted)
+        assertEquals(true, slots[2].isCurrent)
+        assertEquals(false, slots[4].isCounted)
+        assertEquals("Al doilea grup", countingTrailTitleFor(state, countedCount = 2))
+        assertEquals("Traseu complet", countingTrailTitleFor(state, countedCount = 5))
+    }
+
+    @Test
+    fun countingTrailMakesSubtractionTakeAwaySeparateFromRemainders() {
+        val state = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+        val slots = countingTrailSlotsFor(state, countedCount = 3)
+
+        assertEquals(5, slots.size)
+        assertEquals(listOf(CountingTrailRole.TakenToChest, CountingTrailRole.TakenToChest), slots.take(2).map { it.role })
+        assertEquals(
+            listOf(CountingTrailRole.RemainingOnDeck, CountingTrailRole.RemainingOnDeck, CountingTrailRole.RemainingOnDeck),
+            slots.drop(2).map { it.role }
+        )
+        assertEquals(true, slots[2].isCounted)
+        assertEquals(true, slots[3].isCurrent)
+        assertEquals("Mutăm în cufăr", countingTrailTitleFor(state, countedCount = 1))
+        assertEquals("Numărăm ce rămâne", countingTrailTitleFor(state, countedCount = 2))
+    }
+
+    @Test
     fun guidedCountingOnlyAdvancesWhenTheHighlightedObjectIsTapped() {
         val empty = emptyMap<String, Int>()
         val first = nextCountedItemsAfterTap(

@@ -92,6 +92,7 @@ This branch was verified with:
 Generated debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Latest visual QA screenshot: `app/src/test/screenshots/greeting.png`.
 Recovery mission visual QA: `app/src/test/screenshots/recovery_mission_stage.png`.
+Counting trail visual QA: `app/src/test/screenshots/new_treasure_items.png` and `app/src/test/screenshots/subtraction_stage.png`.
 Reward harbor visual QA: `app/src/test/screenshots/reward_harbor_progress.png`.
 Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.
 Daily quests visual QA: `app/src/test/screenshots/captain_quest_board.png`.

@@ -179,6 +179,21 @@ data class RoundStepCue(
     val color: Color
 )
 
+enum class CountingTrailRole {
+    FirstGroup,
+    SecondGroup,
+    TakenToChest,
+    RemainingOnDeck
+}
+
+data class CountingTrailSlot(
+    val order: Int,
+    val role: CountingTrailRole,
+    val drawableRes: Int,
+    val isCounted: Boolean,
+    val isCurrent: Boolean
+)
+
 enum class GameSoundCue {
     CountTick,
     MoveToChest,
@@ -638,6 +653,66 @@ fun roundAdventureStatusFor(state: GameState, countedCount: Int): String {
 
 fun answerButtonsUnlocked(state: GameState, countedCount: Int): Boolean {
     return remainingTouchesFor(state, countedCount) == 0
+}
+
+fun countingTrailSlotsFor(state: GameState, countedCount: Int): List<CountingTrailSlot> {
+    val safeCounted = countedCount.coerceIn(0, visibleObjectCountFor(state))
+    return buildList {
+        if (state.operation == MathOperation.Subtraction) {
+            repeat(state.num1) { index ->
+                val order = index + 1
+                val role = if (order <= state.num2) {
+                    CountingTrailRole.TakenToChest
+                } else {
+                    CountingTrailRole.RemainingOnDeck
+                }
+                add(
+                    CountingTrailSlot(
+                        order = order,
+                        role = role,
+                        drawableRes = state.item1.drawableRes ?: R.drawable.item_gold_coin,
+                        isCounted = order <= safeCounted,
+                        isCurrent = order == safeCounted + 1
+                    )
+                )
+            }
+        } else {
+            repeat(state.num1) { index ->
+                val order = index + 1
+                add(
+                    CountingTrailSlot(
+                        order = order,
+                        role = CountingTrailRole.FirstGroup,
+                        drawableRes = state.item1.drawableRes ?: R.drawable.item_gold_coin,
+                        isCounted = order <= safeCounted,
+                        isCurrent = order == safeCounted + 1
+                    )
+                )
+            }
+            repeat(state.num2) { index ->
+                val order = state.num1 + index + 1
+                add(
+                    CountingTrailSlot(
+                        order = order,
+                        role = CountingTrailRole.SecondGroup,
+                        drawableRes = state.item2.drawableRes ?: R.drawable.item_treasure_chest,
+                        isCounted = order <= safeCounted,
+                        isCurrent = order == safeCounted + 1
+                    )
+                )
+            }
+        }
+    }
+}
+
+fun countingTrailTitleFor(state: GameState, countedCount: Int): String {
+    return when {
+        remainingTouchesFor(state, countedCount) == 0 -> "Traseu complet"
+        state.operation == MathOperation.Subtraction && countedCount < state.num2 -> "Mutăm în cufăr"
+        state.operation == MathOperation.Subtraction -> "Numărăm ce rămâne"
+        countedCount < state.num1 -> "Primul grup"
+        else -> "Al doilea grup"
+    }
 }
 
 fun remainingOnDeckCountFor(state: GameState): Int {
@@ -3615,7 +3690,12 @@ internal fun ProblemStage(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            CountingTreasureTrail(
+                state = state,
+                countedCount = countedCount
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Surface(
                 shape = RoundedCornerShape(22.dp),
                 color = Color.White.copy(alpha = 0.08f),
@@ -3772,6 +3852,169 @@ private fun SubtractionStepPill(
             Text(label, color = TextSandy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.Black)
         }
+    }
+}
+
+@Composable
+private fun CountingTreasureTrail(
+    state: GameState,
+    countedCount: Int
+) {
+    val slots = countingTrailSlotsFor(state, countedCount)
+    val progress = countingAdventureProgressFor(state, countedCount)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = spring(dampingRatio = 0.68f, stiffness = 220f),
+        label = "countingTreasureTrailProgress"
+    )
+    val accent = if (remainingTouchesFor(state, countedCount) == 0) EmeraldGreen else StarGold
+    val slotSize = when {
+        slots.size <= 5 -> 36.dp
+        slots.size <= 8 -> 30.dp
+        else -> 24.dp
+    }
+    val badgeSize = if (slotSize >= 30.dp) 15.dp else 13.dp
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White.copy(alpha = 0.07f),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.34f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = countingTrailTitleFor(state, countedCount),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1
+                )
+                Text(
+                    text = "${countedCount.coerceAtMost(slots.size)}/${slots.size}",
+                    color = accent,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(7.dp))
+            LinearProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = accent,
+                trackColor = Color.White.copy(alpha = 0.1f),
+                strokeCap = StrokeCap.Round
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                slots.forEach { slot ->
+                    CountingTrailSlotView(
+                        slot = slot,
+                        size = slotSize,
+                        badgeSize = badgeSize
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountingTrailSlotView(
+    slot: CountingTrailSlot,
+    size: Dp,
+    badgeSize: Dp
+) {
+    val transition = rememberInfiniteTransition(label = "countingTrailSlot${slot.order}")
+    val pulse by transition.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 820, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "countingTrailPulse${slot.order}"
+    )
+    val roleColor = countingTrailRoleColor(slot.role)
+    val scale = if (slot.isCurrent) pulse else 1f
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .scale(scale)
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                when {
+                    slot.isCounted -> roleColor.copy(alpha = 0.28f)
+                    slot.isCurrent -> roleColor.copy(alpha = 0.18f)
+                    else -> Color.White.copy(alpha = 0.08f)
+                }
+            )
+            .border(
+                width = if (slot.isCurrent) 2.dp else 1.dp,
+                color = when {
+                    slot.isCurrent -> roleColor
+                    slot.isCounted -> StarGold.copy(alpha = 0.62f)
+                    else -> Color.White.copy(alpha = 0.18f)
+                },
+                shape = RoundedCornerShape(10.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = slot.drawableRes),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(if (size >= 30.dp) 5.dp else 3.dp)
+                .alpha(if (slot.isCounted || slot.isCurrent) 1f else 0.42f)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(badgeSize)
+                .clip(CircleShape)
+                .background(
+                    when {
+                        slot.role == CountingTrailRole.TakenToChest && (slot.isCounted || slot.isCurrent) -> RubyRed
+                        slot.isCounted -> StarGold
+                        slot.isCurrent -> roleColor
+                        else -> OceanBg.copy(alpha = 0.78f)
+                    }
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.64f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (slot.role == CountingTrailRole.TakenToChest && (slot.isCounted || slot.isCurrent)) "-" else slot.order.toString(),
+                color = if (slot.isCounted && slot.role != CountingTrailRole.TakenToChest) OceanBg else Color.White,
+                fontSize = (badgeSize.value * 0.46f).sp,
+                fontWeight = FontWeight.Black,
+                lineHeight = (badgeSize.value * 0.5f).sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+private fun countingTrailRoleColor(role: CountingTrailRole): Color {
+    return when (role) {
+        CountingTrailRole.FirstGroup -> StarGold
+        CountingTrailRole.SecondGroup -> CoralBlue
+        CountingTrailRole.TakenToChest -> RubyRed
+        CountingTrailRole.RemainingOnDeck -> EmeraldGreen
     }
 }
 
