@@ -1,7 +1,9 @@
 package com.example
 
 import android.app.Application
+import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
@@ -176,6 +178,15 @@ data class RoundStepCue(
     val detail: String,
     val color: Color
 )
+
+enum class GameSoundCue {
+    CountTick,
+    MoveToChest,
+    CountComplete,
+    AnswerSelect,
+    TreasureUnlock,
+    Victory
+}
 
 data class OnboardingPreset(
     val id: String,
@@ -410,6 +421,27 @@ fun visibleChestCoinCountFor(lifetimeCoins: Int): Int {
     return (lifetimeCoins / 2 + 1).coerceIn(1, 9)
 }
 
+fun soundResourceFor(cue: GameSoundCue): Int {
+    return when (cue) {
+        GameSoundCue.CountTick -> R.raw.count_tick
+        GameSoundCue.MoveToChest -> R.raw.move_to_chest
+        GameSoundCue.CountComplete -> R.raw.count_complete
+        GameSoundCue.AnswerSelect -> R.raw.answer_select
+        GameSoundCue.TreasureUnlock -> R.raw.treasure_unlock
+        GameSoundCue.Victory -> R.raw.victory_sound
+    }
+}
+
+fun correctRewardSoundResourceFor(correctTotal: Int): Int {
+    val sounds = listOf(R.raw.correct_1, R.raw.correct_2, R.raw.correct_3, R.raw.correct_4)
+    return sounds[(correctTotal - 1).coerceAtLeast(0) % sounds.size]
+}
+
+fun wrongAnswerSoundResourceFor(repairRound: Int): Int {
+    val sounds = listOf(R.raw.wrong_1, R.raw.wrong_2, R.raw.wrong_3)
+    return sounds[(repairRound - 1).coerceAtLeast(0) % sounds.size]
+}
+
 fun celebrationTreasureRankFor(accuracy: Int, repairRounds: Int): String {
     return when {
         accuracy >= 95 && repairRounds == 0 -> "Comoara legendară"
@@ -518,6 +550,15 @@ fun countingAdventureLabelFor(state: GameState, countedCount: Int): String {
         state.operation == MathOperation.Subtraction && countedCount < state.num2 -> "Mutăm spre cufăr"
         state.operation == MathOperation.Subtraction -> "Numărăm ce rămâne"
         else -> "Săpăm spre comoară"
+    }
+}
+
+fun roundAdventureStatusFor(state: GameState, countedCount: Int): String {
+    val remaining = remainingTouchesFor(state, countedCount)
+    return if (remaining == 0) {
+        "răspunsul e deblocat"
+    } else {
+        "$remaining ${if (remaining == 1) "atingere" else "atingeri"} rămase"
     }
 }
 
@@ -1546,7 +1587,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 object OfflineAudioPlayer {
     private var mediaPlayer: MediaPlayer? = null
+    private var soundPool: SoundPool? = null
+    private val loadedEffects = mutableMapOf<Int, Int>()
+    private val readyEffects = mutableSetOf<Int>()
+    private val sampleResources = mutableMapOf<Int, Int>()
+    private val pendingEffectVolumes = mutableMapOf<Int, Float>()
     private val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private val effectResources = listOf(
+        R.raw.count_tick,
+        R.raw.move_to_chest,
+        R.raw.count_complete,
+        R.raw.answer_select,
+        R.raw.treasure_unlock
+    )
+
+    fun preloadEffects(context: android.content.Context) {
+        val appContext = context.applicationContext
+        executor.execute {
+            effectResources.forEach { resId ->
+                prepareEffect(appContext, resId, playWhenLoaded = false, volume = 0.42f)
+            }
+        }
+    }
+
+    fun playEffect(context: android.content.Context, resId: Int, volume: Float = 0.46f) {
+        val appContext = context.applicationContext
+        executor.execute {
+            prepareEffect(appContext, resId, playWhenLoaded = true, volume = volume.coerceIn(0f, 1f))
+        }
+    }
 
     fun play(context: android.content.Context, resId: Int) {
         val appContext = context.applicationContext
@@ -1585,6 +1654,82 @@ object OfflineAudioPlayer {
                 exception.printStackTrace()
             }
         }
+    }
+
+    fun shutdown() {
+        executor.execute {
+            try {
+                mediaPlayer?.release()
+            } catch (_: Exception) {
+            }
+            mediaPlayer = null
+            try {
+                soundPool?.release()
+            } catch (_: Exception) {
+            }
+            soundPool = null
+            loadedEffects.clear()
+            readyEffects.clear()
+            sampleResources.clear()
+            pendingEffectVolumes.clear()
+        }
+    }
+
+    private fun prepareEffect(
+        context: android.content.Context,
+        resId: Int,
+        playWhenLoaded: Boolean,
+        volume: Float
+    ) {
+        val pool = ensureSoundPool()
+        val sampleId = loadedEffects[resId]
+        if (sampleId != null) {
+            if (playWhenLoaded) {
+                if (sampleId in readyEffects) {
+                    pool.play(sampleId, volume, volume, 1, 0, 1f)
+                } else {
+                    pendingEffectVolumes[sampleId] = volume
+                }
+            }
+            return
+        }
+
+        val loadingSampleId = pool.load(context, resId, 1)
+        loadedEffects[resId] = loadingSampleId
+        sampleResources[loadingSampleId] = resId
+        if (playWhenLoaded) {
+            pendingEffectVolumes[loadingSampleId] = volume
+        }
+    }
+
+    private fun ensureSoundPool(): SoundPool {
+        soundPool?.let { return it }
+        val attributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        return SoundPool.Builder()
+            .setMaxStreams(5)
+            .setAudioAttributes(attributes)
+            .build()
+            .also { pool ->
+                pool.setOnLoadCompleteListener { loadedPool, sampleId, status ->
+                    executor.execute {
+                        val volume = pendingEffectVolumes.remove(sampleId)
+                        if (status == 0) {
+                            readyEffects.add(sampleId)
+                            if (volume != null) {
+                                loadedPool.play(sampleId, volume, volume, 1, 0, 1f)
+                            }
+                        } else {
+                            sampleResources.remove(sampleId)?.let { failedResId ->
+                                loadedEffects.remove(failedResId)
+                            }
+                        }
+                    }
+                }
+                soundPool = pool
+            }
     }
 }
 
@@ -1640,6 +1785,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         SpeechNarrator.shutdown()
+        OfflineAudioPlayer.shutdown()
         super.onDestroy()
     }
 }
@@ -1664,13 +1810,13 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
         mutableStateMapOf<String, Int>()
     }
 
+    LaunchedEffect(Unit) {
+        OfflineAudioPlayer.preloadEffects(context)
+    }
+
     LaunchedEffect(state.isCorrecting) {
         if (state.isCorrecting) {
-            val audioNames = listOf("correct_1", "correct_2", "correct_3", "correct_4")
-            val resId = context.resources.getIdentifier(audioNames.random(), "raw", context.packageName)
-            if (resId != 0) {
-                OfflineAudioPlayer.play(context, resId)
-            }
+            OfflineAudioPlayer.play(context, correctRewardSoundResourceFor(state.correctTotal))
             delay(1250)
             viewModel.nextQuestion()
         }
@@ -1678,20 +1824,13 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
 
     LaunchedEffect(state.repairRound) {
         if (state.selectedWrongAnswer != null) {
-            val audioNames = listOf("wrong_1", "wrong_2", "wrong_3")
-            val resId = context.resources.getIdentifier(audioNames.random(), "raw", context.packageName)
-            if (resId != 0) {
-                OfflineAudioPlayer.play(context, resId)
-            }
+            OfflineAudioPlayer.play(context, wrongAnswerSoundResourceFor(state.repairRound))
         }
     }
 
     LaunchedEffect(state.showCelebration) {
         if (state.showCelebration) {
-            val resId = context.resources.getIdentifier("victory_sound", "raw", context.packageName)
-            if (resId != 0) {
-                OfflineAudioPlayer.play(context, resId)
-            }
+            OfflineAudioPlayer.play(context, soundResourceFor(GameSoundCue.Victory))
         }
     }
 
@@ -1761,6 +1900,13 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                                 guidedItemId = guidedItemId
                             )
                             if (nextCountedItems != countedItems) {
+                                val nextCount = nextCountedItems.size
+                                val cue = when {
+                                    answerButtonsUnlocked(state, nextCount) -> GameSoundCue.CountComplete
+                                    state.operation == MathOperation.Subtraction && nextCount <= state.num2 -> GameSoundCue.MoveToChest
+                                    else -> GameSoundCue.CountTick
+                                }
+                                OfflineAudioPlayer.playEffect(context, soundResourceFor(cue))
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 countedItems.clear()
                                 countedItems.putAll(nextCountedItems)
@@ -1787,6 +1933,10 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                         isEnabled = answerButtonsUnlocked(state, countedItems.size) && !sessionTimeUp(state),
                         onAnswer = { answer ->
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            OfflineAudioPlayer.playEffect(context, soundResourceFor(GameSoundCue.AnswerSelect), volume = 0.36f)
+                            if (answer == correctAnswerFor(state)) {
+                                OfflineAudioPlayer.playEffect(context, soundResourceFor(GameSoundCue.TreasureUnlock), volume = 0.5f)
+                            }
                             viewModel.onAnswer(answer)
                         }
                     )
@@ -3161,6 +3311,8 @@ internal fun ProblemStage(
     guidedItemId: String?,
     onItemTapped: (String) -> Unit
 ) {
+    val countedCount = countedItems.size
+    val cue = roundStepCueFor(state, countedCount)
     Surface(
         shape = RoundedCornerShape(30.dp),
         color = Color(0xFF123343).copy(alpha = 0.94f),
@@ -3196,9 +3348,11 @@ internal fun ProblemStage(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(10.dp))
-            RoundStepCueStrip(cue = roundStepCueFor(state, countedItems.size))
-            Spacer(modifier = Modifier.height(10.dp))
-            CountingAdventureStrip(state = state, countedCount = countedItems.size)
+            RoundAdventureScene(
+                state = state,
+                countedCount = countedCount,
+                cue = cue
+            )
             Spacer(modifier = Modifier.height(14.dp))
             if (state.operation == MathOperation.Subtraction) {
                 SubtractionActionStage(
@@ -3438,6 +3592,275 @@ private fun RoundStepCueStrip(cue: RoundStepCue) {
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 15.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoundAdventureScene(
+    state: GameState,
+    countedCount: Int,
+    cue: RoundStepCue
+) {
+    val progress = countingAdventureProgressFor(state, countedCount)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = spring(dampingRatio = 0.62f, stiffness = 180f),
+        label = "roundAdventureProgress"
+    )
+    val transition = rememberInfiniteTransition(label = "roundAdventureScene")
+    val shipBob by transition.animateFloat(
+        initialValue = -3f,
+        targetValue = 4f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "roundAdventureShipBob"
+    )
+    val shimmer by transition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "roundAdventureShimmer"
+    )
+    val accent = if (remainingTouchesFor(state, countedCount) == 0) EmeraldGreen else cue.color
+    val startDrawable = state.item1.drawableRes ?: R.drawable.item_gold_coin
+    val destinationDrawable = if (state.operation == MathOperation.Subtraction) {
+        R.drawable.item_treasure_chest
+    } else {
+        state.item2.drawableRes ?: R.drawable.item_treasure_chest
+    }
+    val surprise = voyageSurpriseFor(state.correctTotal + countedCount)
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(142.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(Color(0xFF0B4854))
+            .border(1.dp, accent.copy(alpha = 0.44f), RoundedCornerShape(22.dp))
+    ) {
+        val boatTravel = (maxWidth - 98.dp).coerceAtLeast(48.dp)
+        val boatX = 18.dp + boatTravel * animatedProgress
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRoundRect(
+                brush = Brush.linearGradient(
+                    listOf(
+                        Color(0xFF0F6570),
+                        Color(0xFF0B4252),
+                        Color(0xFF4F4024).copy(alpha = 0.84f)
+                    )
+                ),
+                size = size,
+                cornerRadius = CornerRadius(22.dp.toPx(), 22.dp.toPx())
+            )
+            repeat(3) { row ->
+                val y = size.height * (0.46f + row * 0.14f)
+                drawLine(
+                    color = Color.White.copy(alpha = 0.07f + row * 0.02f),
+                    start = Offset(size.width * 0.08f, y),
+                    end = Offset(size.width * 0.92f, y + if (row % 2 == 0) 12f else -8f),
+                    strokeWidth = 5f,
+                    cap = StrokeCap.Round
+                )
+            }
+            val routeStart = Offset(size.width * 0.13f, size.height * 0.7f)
+            val routeMid = Offset(size.width * 0.48f, size.height * 0.48f)
+            val routeEnd = Offset(size.width * 0.86f, size.height * 0.7f)
+            listOf(routeStart to routeMid, routeMid to routeEnd).forEach { (start, end) ->
+                drawLine(
+                    color = Color.White.copy(alpha = 0.2f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 7f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.58f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
+            }
+            val current = if (animatedProgress <= 0.5f) {
+                val t = animatedProgress / 0.5f
+                Offset(
+                    x = routeStart.x + (routeMid.x - routeStart.x) * t,
+                    y = routeStart.y + (routeMid.y - routeStart.y) * t
+                )
+            } else {
+                val t = (animatedProgress - 0.5f) / 0.5f
+                Offset(
+                    x = routeMid.x + (routeEnd.x - routeMid.x) * t,
+                    y = routeMid.y + (routeEnd.y - routeMid.y) * t
+                )
+            }
+            drawCircle(
+                color = accent.copy(alpha = 0.22f + shimmer * 0.18f),
+                radius = 28f,
+                center = current
+            )
+            drawCircle(
+                color = StarGold.copy(alpha = 0.32f + shimmer * 0.32f),
+                radius = 5f,
+                center = routeEnd
+            )
+            listOf(
+                Offset(size.width * 0.22f, size.height * 0.34f),
+                Offset(size.width * 0.58f, size.height * 0.24f),
+                Offset(size.width * 0.74f, size.height * 0.52f)
+            ).forEach { point ->
+                val sparkleSize = 4f + shimmer * 3f
+                drawLine(
+                    color = StarGold.copy(alpha = 0.42f + shimmer * 0.32f),
+                    start = Offset(point.x - sparkleSize, point.y),
+                    end = Offset(point.x + sparkleSize, point.y),
+                    strokeWidth = 2f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.42f + shimmer * 0.32f),
+                    start = Offset(point.x, point.y - sparkleSize),
+                    end = Offset(point.x, point.y + sparkleSize),
+                    strokeWidth = 2f,
+                    cap = StrokeCap.Round
+                )
+            }
+            drawOval(
+                color = Color(0xFFE0B760).copy(alpha = 0.48f),
+                topLeft = Offset(size.width * 0.76f, size.height * 0.72f),
+                size = Size(size.width * 0.2f, size.height * 0.14f)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .padding(horizontal = 9.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(42.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = accent.copy(alpha = 0.24f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.38f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = cue.badge,
+                        color = Color.White,
+                        fontSize = if (cue.badge.length <= 2) 20.sp else 16.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cue.title,
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1
+                )
+                Text(
+                    text = cue.detail,
+                    color = TextSandy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp,
+                    maxLines = 2
+                )
+            }
+            Surface(
+                shape = RoundedCornerShape(15.dp),
+                color = Color.Black.copy(alpha = 0.22f),
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    text = roundAdventureStatusFor(state, countedCount),
+                    modifier = Modifier
+                        .width(82.dp)
+                        .padding(horizontal = 7.dp, vertical = 6.dp),
+                    color = if (remainingTouchesFor(state, countedCount) == 0) EmeraldGreen else StarGold,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 10.sp
+                )
+            }
+        }
+        Image(
+            painter = painterResource(id = startDrawable),
+            contentDescription = state.item1.nameSingular,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(54.dp)
+                .align(Alignment.BottomStart)
+                .offset(x = 9.dp, y = (-8).dp)
+        )
+        Image(
+            painter = painterResource(id = R.drawable.item_ship),
+            contentDescription = "Corabia de numărare",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(56.dp)
+                .align(Alignment.TopStart)
+                .offset(x = boatX, y = (64f + shipBob).dp)
+        )
+        Image(
+            painter = painterResource(id = destinationDrawable),
+            contentDescription = "destinația rundei",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(62.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = (-8).dp, y = (-5).dp)
+        )
+        Surface(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 8.dp)
+                .width(122.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.22f),
+            border = BorderStroke(1.dp, surprise.color.copy(alpha = 0.48f))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = surprise.drawableRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(28.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "pe drum",
+                        color = TextSandy,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = surprise.title,
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 10.sp,
+                        maxLines = 2
+                    )
+                }
             }
         }
     }

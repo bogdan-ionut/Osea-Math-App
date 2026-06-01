@@ -34,6 +34,8 @@ class ExampleUnitTest {
         assertEquals("Mutăm spre cufăr", countingAdventureLabelFor(subtraction, countedCount = 1))
         assertEquals("Numărăm ce rămâne", countingAdventureLabelFor(subtraction, countedCount = 3))
         assertEquals("Comoara e pregătită", countingAdventureLabelFor(addition, countedCount = 4))
+        assertEquals("2 atingeri rămase", roundAdventureStatusFor(addition, countedCount = 2))
+        assertEquals("răspunsul e deblocat", roundAdventureStatusFor(subtraction, countedCount = 5))
     }
 
     @Test
@@ -680,10 +682,15 @@ class ExampleUnitTest {
     fun audioAssetsAreBundledForOfflinePlay() {
         val rawDir = File("src/main/res/raw")
         val expectedAudio = listOf(
+            "answer_select.wav",
             "correct_1.mp3",
             "correct_2.mp3",
             "correct_3.mp3",
             "correct_4.mp3",
+            "count_complete.wav",
+            "count_tick.wav",
+            "move_to_chest.wav",
+            "treasure_unlock.wav",
             "wrong_1.mp3",
             "wrong_2.mp3",
             "wrong_3.mp3",
@@ -695,6 +702,23 @@ class ExampleUnitTest {
             assertTrue("$fileName should exist in res/raw", audioFile.exists())
             assertTrue("$fileName should not be empty", audioFile.length() > 0)
         }
+    }
+
+    @Test
+    fun gameSoundMappingsCoverRewardingActions() {
+        assertEquals(R.raw.count_tick, soundResourceFor(GameSoundCue.CountTick))
+        assertEquals(R.raw.move_to_chest, soundResourceFor(GameSoundCue.MoveToChest))
+        assertEquals(R.raw.count_complete, soundResourceFor(GameSoundCue.CountComplete))
+        assertEquals(R.raw.answer_select, soundResourceFor(GameSoundCue.AnswerSelect))
+        assertEquals(R.raw.treasure_unlock, soundResourceFor(GameSoundCue.TreasureUnlock))
+        assertEquals(R.raw.victory_sound, soundResourceFor(GameSoundCue.Victory))
+
+        assertEquals(R.raw.correct_1, correctRewardSoundResourceFor(1))
+        assertEquals(R.raw.correct_4, correctRewardSoundResourceFor(4))
+        assertEquals(R.raw.correct_1, correctRewardSoundResourceFor(5))
+        assertEquals(R.raw.wrong_1, wrongAnswerSoundResourceFor(1))
+        assertEquals(R.raw.wrong_3, wrongAnswerSoundResourceFor(3))
+        assertEquals(R.raw.wrong_1, wrongAnswerSoundResourceFor(4))
     }
 
     @Test
