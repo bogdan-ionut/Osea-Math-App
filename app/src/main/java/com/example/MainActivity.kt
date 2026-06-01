@@ -200,6 +200,13 @@ data class AnswerChestTier(
     val color: Color
 )
 
+data class RepairPlanStep(
+    val badge: String,
+    val title: String,
+    val detail: String,
+    val color: Color
+)
+
 enum class GameSoundCue {
     CountTick,
     MoveToChest,
@@ -734,6 +741,40 @@ fun answerChestTierFor(index: Int): AnswerChestTier {
 
 private fun Int.floorMod(modulus: Int): Int {
     return ((this % modulus) + modulus) % modulus
+}
+
+fun repairPlanTitleFor(state: GameState): String {
+    return if (state.operation == MathOperation.Subtraction) {
+        "Reparăm traseul scăderii"
+    } else {
+        "Reparăm harta numărării"
+    }
+}
+
+fun repairPlanDetailFor(state: GameState): String {
+    val answer = correctAnswerFor(state)
+    return if (state.operation == MathOperation.Subtraction) {
+        "Încercarea ${state.selectedWrongAnswer ?: "?"} merge la doc. Pe punte rămân $answer comori."
+    } else {
+        "Încercarea ${state.selectedWrongAnswer ?: "?"} merge la doc. Ultimul număr sigur este $answer."
+    }
+}
+
+fun repairPlanStepsFor(state: GameState): List<RepairPlanStep> {
+    val answer = correctAnswerFor(state)
+    return if (state.operation == MathOperation.Subtraction) {
+        listOf(
+            RepairPlanStep("1", "Mutăm", "${state.num2} în cufăr", StarGold),
+            RepairPlanStep("2", "Rămân", "$answer pe punte", EmeraldGreen),
+            RepairPlanStep("3", "Alegem", "cufărul $answer", CoralBlue)
+        )
+    } else {
+        listOf(
+            RepairPlanStep("1", "Re-numărăm", "${visibleObjectCountFor(state)} comori", StarGold),
+            RepairPlanStep("2", "Ultimul", "spune totalul", EmeraldGreen),
+            RepairPlanStep("3", "Alegem", "cufărul $answer", CoralBlue)
+        )
+    }
 }
 
 fun remainingOnDeckCountFor(state: GameState): Int {
@@ -5665,23 +5706,71 @@ private fun RewardCoinBurstIcon() {
 }
 
 @Composable
-private fun MasteryRepairCard(state: GameState) {
+internal fun MasteryRepairCard(state: GameState) {
     val answer = correctAnswerFor(state)
+    val steps = repairPlanStepsFor(state)
     Column {
         Spacer(modifier = Modifier.height(10.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = Color.Black.copy(alpha = 0.18f),
-            border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.38f))
+            shape = RoundedCornerShape(20.dp),
+            color = Color(0xFF11313D).copy(alpha = 0.84f),
+            border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.48f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = "Plan de reparare",
-                    color = CoralBlue,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Black
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(46.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = CoralBlue.copy(alpha = 0.18f),
+                        border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.48f))
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Image(
+                                painter = painterResource(id = R.drawable.item_treasure_map),
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize().padding(6.dp)
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = repairPlanTitleFor(state),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = repairPlanDetailFor(state),
+                            color = TextSandy,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 12.sp,
+                            maxLines = 2
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                RepairHarborRoute(state = state)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    steps.forEach { step ->
+                        RepairPlanStepCard(
+                            step = step,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -5729,6 +5818,244 @@ private fun MasteryRepairCard(state: GameState) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 15.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RepairHarborRoute(state: GameState) {
+    val answer = correctAnswerFor(state)
+    val wrongAnswer = state.selectedWrongAnswer ?: answer
+    val transition = rememberInfiniteTransition(label = "repairHarborRoute")
+    val shimmer by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1150, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "repairHarborShimmer"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(84.dp)
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val routeY = size.height * 0.52f
+                val start = Offset(size.width * 0.2f, routeY)
+                val end = Offset(size.width * 0.8f, routeY)
+                val dock = Offset(size.width * 0.5f, routeY - size.height * 0.08f)
+
+                drawLine(
+                    color = TextSandy.copy(alpha = 0.34f),
+                    start = start,
+                    end = end,
+                    strokeWidth = 9f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = CoralBlue.copy(alpha = 0.35f + shimmer * 0.2f),
+                    start = start,
+                    end = dock,
+                    strokeWidth = 4f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = EmeraldGreen.copy(alpha = 0.42f + shimmer * 0.18f),
+                    start = dock,
+                    end = end,
+                    strokeWidth = 4f,
+                    cap = StrokeCap.Round
+                )
+
+                repeat(5) { index ->
+                    val t = (index + 1) / 6f
+                    val point = Offset(start.x + (end.x - start.x) * t, routeY)
+                    drawCircle(
+                        color = StarGold.copy(alpha = 0.25f + shimmer * 0.18f),
+                        radius = 3.5f + shimmer * 1.5f,
+                        center = point
+                    )
+                }
+
+                drawRoundRect(
+                    color = CoralBlue.copy(alpha = 0.18f),
+                    topLeft = Offset(dock.x - 27f, dock.y - 14f),
+                    size = Size(54f, 28f),
+                    cornerRadius = CornerRadius(12f, 12f)
+                )
+                drawLine(
+                    color = Color.White.copy(alpha = 0.7f),
+                    start = Offset(dock.x - 15f, dock.y + 3f),
+                    end = Offset(dock.x + 15f, dock.y + 3f),
+                    strokeWidth = 3f,
+                    cap = StrokeCap.Round
+                )
+
+                val spark = 5f + shimmer * 3f
+                listOf(
+                    Offset(size.width * 0.34f, size.height * 0.22f),
+                    Offset(size.width * 0.64f, size.height * 0.72f)
+                ).forEach { point ->
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.55f),
+                        start = Offset(point.x - spark, point.y),
+                        end = Offset(point.x + spark, point.y),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.55f),
+                        start = Offset(point.x, point.y - spark),
+                        end = Offset(point.x, point.y + spark),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+
+            RepairAnswerBadge(
+                label = wrongAnswer.toString(),
+                title = "la doc",
+                color = RubyRed,
+                drawableRes = R.drawable.item_anchor,
+                modifier = Modifier.align(Alignment.CenterStart)
+            )
+            RepairAnswerBadge(
+                label = answer.toString(),
+                title = "sigur",
+                color = EmeraldGreen,
+                drawableRes = R.drawable.item_treasure_chest,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .align(Alignment.Center),
+                shape = CircleShape,
+                color = CoralBlue.copy(alpha = 0.2f),
+                border = BorderStroke(1.dp, CoralBlue.copy(alpha = 0.58f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.item_treasure_map),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize().padding(7.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RepairAnswerBadge(
+    label: String,
+    title: String,
+    color: Color,
+    drawableRes: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .width(78.dp)
+            .height(58.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.2f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.62f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Image(
+                painter = painterResource(id = drawableRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(28.dp)
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = label,
+                    color = Color.White,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 20.sp,
+                    maxLines = 1
+                )
+                Text(
+                    text = title,
+                    color = TextSandy,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 10.sp,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RepairPlanStepCard(
+    step: RepairPlanStep,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = step.color.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, step.color.copy(alpha = 0.45f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(step.color.copy(alpha = 0.95f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = step.badge,
+                    color = OceanBg,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 12.sp
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = step.title,
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 10.sp,
+                    maxLines = 1
+                )
+                Text(
+                    text = step.detail,
+                    color = TextSandy,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 9.sp,
+                    maxLines = 2
                 )
             }
         }

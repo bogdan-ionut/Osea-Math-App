@@ -45,6 +45,7 @@ Versiunea curentă transformă quiz-ul inițial într-o buclă ghidată de maste
 - cufăr vizual care se umple cu monede și nestemate pe măsură ce se strâng comori
 - launcher icon nou, aliniat cu tema de aventură pe mare: corabie, cufăr și monedă
 - micro-coaching vizual după răspuns greșit: problema se repară în pași concreți, cu aceleași obiecte din joc
+- traseu vizual de reparare după răspuns greșit: încercarea pleacă la doc, apoi copilul ajunge la cufărul cu răspuns sigur
 - după greșeală, răspunsurile se blochează din nou până când copilul reface numărarea completă
 - după numărare completă, jocul arată vizual `Total sigur` sau `Rămân pe punte`, ca sensul operației să fie concret
 - în timpul numărării, o bandă de aventură mută lopata spre cufăr și arată câte atingeri mai lipsesc
@@ -101,6 +102,7 @@ Reward burst visual QA: `app/src/test/screenshots/reward_burst.png`.
 Correct streak cannon salute QA is included in `app/src/test/screenshots/reward_burst.png`.
 Locked answer chests visual QA: `app/src/test/screenshots/locked_answer_chests.png`.
 Answer unlock banner visual QA: `app/src/test/screenshots/answer_unlock_banner.png`.
+Repair harbor visual QA: `app/src/test/screenshots/mastery_repair_card.png`.
 Treasure celebration visual QA: `app/src/test/screenshots/celebration_treasure.png`.
 Generated item pack: captain hat, ship bell, rope coil, jeweled crown, message bottle, pearl shell, sextant, pirate flag, captain boot, powder keg, treasure pickaxe, emerald relic.
 Relic trail visual QA is included in `app/src/test/screenshots/greeting.png`; generated item QA is in `app/src/test/screenshots/new_treasure_items.png`.

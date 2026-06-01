@@ -283,6 +283,34 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun mastery_repair_card_screenshot() {
+    val state = GameState(
+      num1 = 5,
+      num2 = 2,
+      operation = MathOperation.Subtraction,
+      selectedWrongAnswer = 4,
+      repairRounds = 1,
+      item1 = PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
+      item2 = PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest)
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          MasteryRepairCard(state = state)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/mastery_repair_card.png")
+  }
+
+  @Test
   fun reward_harbor_progress_screenshot() {
     val state = GameState(
       lifetimeCoins = 10,

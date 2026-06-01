@@ -408,6 +408,30 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun repairPlanExplainsWrongAnswersAsConcreteMapRepair() {
+        val addition = GameState(
+            num1 = 2,
+            num2 = 3,
+            operation = MathOperation.Addition,
+            selectedWrongAnswer = 4
+        )
+        val subtraction = GameState(
+            num1 = 5,
+            num2 = 2,
+            operation = MathOperation.Subtraction,
+            selectedWrongAnswer = 4
+        )
+
+        assertEquals("Reparăm harta numărării", repairPlanTitleFor(addition))
+        assertEquals("Încercarea 4 merge la doc. Ultimul număr sigur este 5.", repairPlanDetailFor(addition))
+        assertEquals(listOf("Re-numărăm", "Ultimul", "Alegem"), repairPlanStepsFor(addition).map { it.title })
+
+        assertEquals("Reparăm traseul scăderii", repairPlanTitleFor(subtraction))
+        assertEquals("Încercarea 4 merge la doc. Pe punte rămân 3 comori.", repairPlanDetailFor(subtraction))
+        assertEquals(listOf("Mutăm", "Rămân", "Alegem"), repairPlanStepsFor(subtraction).map { it.title })
+    }
+
+    @Test
     fun rewardCollectionTracksNextUnlockAndRarityProgress() {
         assertEquals(0, unlockedRewardCountFor(lifetimeCoins = 2))
         assertEquals(1, unlockedRewardCountFor(lifetimeCoins = 3))
