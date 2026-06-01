@@ -56,6 +56,17 @@ class ExampleUnitTest {
         assertEquals(0, coinsToNextVoyageSurprise(2))
         assertEquals("descoperită acum", voyageSurpriseProgressTextFor(2))
         assertEquals("1 comoară până la surpriză", voyageSurpriseProgressTextFor(1))
+        assertEquals(0, discoveredMapRelicCountFor(1))
+        assertEquals(2, discoveredMapRelicCountFor(5))
+        assertEquals(4, discoveredMapRelicCountFor(99))
+        assertEquals("Cizma căpitanului", nextMapRelicFor(0)?.title)
+        assertEquals("Târnăcop de aur", nextMapRelicFor(5)?.title)
+        assertEquals(null, nextMapRelicFor(99))
+        assertEquals(0.5f, mapRelicProgressFor(1), 0.001f)
+        assertEquals(0.5f, mapRelicProgressFor(5), 0.001f)
+        assertEquals(1f, mapRelicProgressFor(99), 0.001f)
+        assertEquals("1 comoară până la Cizma căpitanului", mapRelicStatusTextFor(1))
+        assertEquals("toate relicvele zilei sunt în cufăr", mapRelicStatusTextFor(99))
     }
 
     @Test
@@ -742,7 +753,11 @@ class ExampleUnitTest {
             "item_ship_wheel.png",
             "item_gem_pouch.png",
             "item_cannonballs.png",
-            "item_ship_lantern.png"
+            "item_ship_lantern.png",
+            "item_captain_boot.png",
+            "item_powder_keg.png",
+            "item_treasure_pickaxe.png",
+            "item_emerald_relic.png"
         )
 
         expectedAssets.forEach { fileName ->

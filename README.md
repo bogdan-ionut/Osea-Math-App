@@ -100,5 +100,6 @@ Correct streak cannon salute QA is included in `app/src/test/screenshots/reward_
 Locked answer chests visual QA: `app/src/test/screenshots/locked_answer_chests.png`.
 Answer unlock banner visual QA: `app/src/test/screenshots/answer_unlock_banner.png`.
 Treasure celebration visual QA: `app/src/test/screenshots/celebration_treasure.png`.
-Generated item pack: captain hat, ship bell, rope coil, jeweled crown, message bottle, pearl shell, sextant, pirate flag.
+Generated item pack: captain hat, ship bell, rope coil, jeweled crown, message bottle, pearl shell, sextant, pirate flag, captain boot, powder keg, treasure pickaxe, emerald relic.
+Relic trail visual QA is included in `app/src/test/screenshots/greeting.png`; generated item QA is in `app/src/test/screenshots/new_treasure_items.png`.
 Offline sound pack: counting tap, move-to-chest, count complete, answer select, treasure unlock, streak cannon salute, correct/wrong reward, and victory cues.

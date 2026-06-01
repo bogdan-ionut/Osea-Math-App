@@ -181,8 +181,8 @@ class GreetingScreenshotTest {
       num1 = 2,
       num2 = 2,
       operation = MathOperation.Addition,
-      item1 = PirateItem("sticlÄƒ", "sticle", "cu mesaj secret", Color(0xFF6EC6FF), TreasureShape.Spyglass, R.drawable.item_message_bottle),
-      item2 = PirateItem("scoicÄƒ", "scoici", "cu perle mari", Color(0xFFF8BBD0), TreasureShape.Shell, R.drawable.item_pearl_shell)
+      item1 = PirateItem("cizmă", "cizme", "de căpitan", Color(0xFFFFA726), TreasureShape.Key, R.drawable.item_captain_boot),
+      item2 = PirateItem("relicvă", "relicve", "de smarald", Color(0xFF37D88B), TreasureShape.Gem, R.drawable.item_emerald_relic)
     )
 
     composeTestRule.setContent {

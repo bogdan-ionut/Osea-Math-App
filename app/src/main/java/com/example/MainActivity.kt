@@ -231,6 +231,14 @@ data class VoyageSurprise(
     val color: Color
 )
 
+data class MapRelic(
+    val title: String,
+    val detail: String,
+    val drawableRes: Int,
+    val color: Color,
+    val unlockCoins: Int
+)
+
 private val treasureItems = listOf(
     PirateItem("corabie", "corăbii", "cu pânze de aventură", Color(0xFF54C6F4), TreasureShape.Boat, R.drawable.item_ship),
     PirateItem("cufăr", "cufere", "pline cu bogății", Color(0xFFFFB74D), TreasureShape.Key, R.drawable.item_treasure_chest),
@@ -259,7 +267,11 @@ private val treasureItems = listOf(
     PirateItem("pălărie", "pălării", "de căpitan", Color(0xFFFF8A65), TreasureShape.Key, R.drawable.item_captain_hat),
     PirateItem("clopot", "clopote", "de corabie", Color(0xFFFFC857), TreasureShape.Coin, R.drawable.item_ship_bell),
     PirateItem("frânghie", "frânghii", "de punte", Color(0xFFD7A64A), TreasureShape.Anchor, R.drawable.item_rope_coil),
-    PirateItem("coroană", "coroane", "cu nestemate", Color(0xFFFFD54F), TreasureShape.Gem, R.drawable.item_jewel_crown)
+    PirateItem("coroană", "coroane", "cu nestemate", Color(0xFFFFD54F), TreasureShape.Gem, R.drawable.item_jewel_crown),
+    PirateItem("cizmă", "cizme", "de căpitan", Color(0xFFFFA726), TreasureShape.Key, R.drawable.item_captain_boot),
+    PirateItem("butoiaș", "butoiașe", "cu stea aurie", Color(0xFFD7A64A), TreasureShape.Anchor, R.drawable.item_powder_keg),
+    PirateItem("târnăcop", "târnăcoape", "pentru săpat comori", Color(0xFFFFC857), TreasureShape.Key, R.drawable.item_treasure_pickaxe),
+    PirateItem("relicvă", "relicve", "de smarald", Color(0xFF37D88B), TreasureShape.Gem, R.drawable.item_emerald_relic)
 )
 
 private val learningIslands = listOf(
@@ -283,7 +295,18 @@ private val voyageSurprises = listOf(
     VoyageSurprise("Pălărie de căpitan", "Oséa conduce corabia", R.drawable.item_captain_hat, Color(0xFFFF8A65)),
     VoyageSurprise("Clopot de port", "sună victoria", R.drawable.item_ship_bell, Color(0xFFFFC857)),
     VoyageSurprise("Frânghie magică", "leagă drumul bun", R.drawable.item_rope_coil, Color(0xFFD7A64A)),
-    VoyageSurprise("Coroana comorii", "strălucește în cufăr", R.drawable.item_jewel_crown, Color(0xFFFFD54F))
+    VoyageSurprise("Coroana comorii", "strălucește în cufăr", R.drawable.item_jewel_crown, Color(0xFFFFD54F)),
+    VoyageSurprise("Cizma căpitanului", "bate ritmul pe punte", R.drawable.item_captain_boot, Color(0xFFFFA726)),
+    VoyageSurprise("Butoiaș cu stea", "tunurile sunt gata", R.drawable.item_powder_keg, Color(0xFFD7A64A)),
+    VoyageSurprise("Târnăcop de aur", "sapă după indiciu", R.drawable.item_treasure_pickaxe, Color(0xFFFFC857)),
+    VoyageSurprise("Relicvă de smarald", "luminează harta", R.drawable.item_emerald_relic, Color(0xFF37D88B))
+)
+
+private val mapRelics = listOf(
+    MapRelic("Cizma căpitanului", "primul pas pe hartă", R.drawable.item_captain_boot, Color(0xFFFFA726), unlockCoins = 2),
+    MapRelic("Butoiaș cu stea", "salut de pe punte", R.drawable.item_powder_keg, Color(0xFFD7A64A), unlockCoins = 4),
+    MapRelic("Târnăcop de aur", "săpăm după X", R.drawable.item_treasure_pickaxe, Color(0xFFFFC857), unlockCoins = 6),
+    MapRelic("Relicvă de smarald", "harta se aprinde", R.drawable.item_emerald_relic, Color(0xFF37D88B), unlockCoins = 8)
 )
 
 private val commonReward = RewardRarity("Comun", Color(0xFF8FD8FF))
@@ -414,6 +437,33 @@ fun voyageSurpriseProgressTextFor(correctTotal: Int): String {
         "descoperită acum"
     } else {
         "$coinsToSurprise ${if (coinsToSurprise == 1) "comoară" else "comori"} până la surpriză"
+    }
+}
+
+fun discoveredMapRelicCountFor(correctTotal: Int): Int {
+    return mapRelics.count { correctTotal >= it.unlockCoins }
+}
+
+fun nextMapRelicFor(correctTotal: Int): MapRelic? {
+    return mapRelics.firstOrNull { correctTotal < it.unlockCoins }
+}
+
+fun mapRelicProgressFor(correctTotal: Int): Float {
+    val nextRelic = nextMapRelicFor(correctTotal) ?: return 1f
+    val previousUnlock = mapRelics
+        .filter { it.unlockCoins < nextRelic.unlockCoins }
+        .maxOfOrNull { it.unlockCoins } ?: 0
+    val span = (nextRelic.unlockCoins - previousUnlock).coerceAtLeast(1)
+    return ((correctTotal - previousUnlock).toFloat() / span.toFloat()).coerceIn(0f, 1f)
+}
+
+fun mapRelicStatusTextFor(correctTotal: Int): String {
+    val nextRelic = nextMapRelicFor(correctTotal)
+    return if (nextRelic == null) {
+        "toate relicvele zilei sunt în cufăr"
+    } else {
+        val remaining = (nextRelic.unlockCoins - correctTotal).coerceAtLeast(0)
+        "$remaining ${if (remaining == 1) "comoară" else "comori"} până la ${nextRelic.title}"
     }
 }
 
@@ -2357,6 +2407,8 @@ private fun LearningJourney(correctTotal: Int, dailyTarget: Int) {
                 activeIslandIndex = activeIslandIndex,
                 surprise = voyageSurpriseFor(correctTotal)
             )
+            Spacer(modifier = Modifier.height(10.dp))
+            SecretRelicTrail(correctTotal = correctTotal)
         }
     }
 }
@@ -2737,6 +2789,143 @@ private fun VoyageSurpriseBadge(
                     color = TextSandy.copy(alpha = 0.78f),
                     fontSize = 7.sp,
                     lineHeight = 8.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SecretRelicTrail(correctTotal: Int) {
+    val discoveredCount = discoveredMapRelicCountFor(correctTotal)
+    val nextRelic = nextMapRelicFor(correctTotal)
+    val accent = nextRelic?.color ?: EmeraldGreen
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFF061F2A).copy(alpha = 0.54f),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.42f))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Relicve pe traseu",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 14.sp
+                    )
+                    Text(
+                        text = mapRelicStatusTextFor(correctTotal),
+                        color = TextSandy,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 11.sp,
+                        maxLines = 1
+                    )
+                }
+                Text(
+                    text = "$discoveredCount/${mapRelics.size}",
+                    color = accent,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(7.dp))
+            LinearProgressIndicator(
+                progress = { mapRelicProgressFor(correctTotal) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = accent,
+                trackColor = Color.White.copy(alpha = 0.1f),
+                strokeCap = StrokeCap.Round
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                mapRelics.forEachIndexed { index, relic ->
+                    RelicMapSlot(
+                        relic = relic,
+                        unlocked = correctTotal >= relic.unlockCoins,
+                        active = nextRelic == relic,
+                        index = index
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RelicMapSlot(
+    relic: MapRelic,
+    unlocked: Boolean,
+    active: Boolean,
+    index: Int
+) {
+    val transition = rememberInfiniteTransition(label = "relicSlotPulse$index")
+    val pulse by transition.animateFloat(
+        initialValue = 0.94f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 960, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "relicSlotPulseValue$index"
+    )
+    Surface(
+        modifier = Modifier
+            .size(48.dp)
+            .scale(if (active) pulse else 1f),
+        shape = RoundedCornerShape(15.dp),
+        color = when {
+            unlocked -> relic.color.copy(alpha = 0.22f)
+            active -> relic.color.copy(alpha = 0.16f)
+            else -> Color.White.copy(alpha = 0.08f)
+        },
+        border = BorderStroke(
+            width = if (active) 2.dp else 1.dp,
+            color = when {
+                active -> relic.color
+                unlocked -> StarGold.copy(alpha = 0.58f)
+                else -> Color.White.copy(alpha = 0.18f)
+            }
+        )
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = relic.drawableRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(if (unlocked || active) 36.dp else 30.dp)
+                    .alpha(if (unlocked || active) 1f else 0.34f)
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(if (unlocked) StarGold else OceanBg.copy(alpha = 0.84f))
+                    .border(1.dp, Color.White.copy(alpha = 0.62f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (unlocked) "✓" else relic.unlockCoins.toString(),
+                    color = if (unlocked) OceanBg else TextSandy,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 9.sp
                 )
             }
         }
