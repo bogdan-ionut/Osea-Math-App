@@ -1925,12 +1925,19 @@ fun MathGameScreen(viewModel: MainViewModel = viewModel()) {
                         }
                     )
                     Spacer(modifier = Modifier.height(14.dp))
+                    val answersReady = answerButtonsUnlocked(state, countedItems.size) && !sessionTimeUp(state)
+                    AnimatedVisibility(visible = answersReady && !state.isCorrecting) {
+                        Column {
+                            AnswerUnlockBanner(state = state, countedCount = countedItems.size)
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
                     AnswerGrid(
                         options = state.options,
                         wrongAnswer = state.selectedWrongAnswer,
                         isCorrecting = state.isCorrecting,
                         correctAnswer = correctAnswerFor(state),
-                        isEnabled = answerButtonsUnlocked(state, countedItems.size) && !sessionTimeUp(state),
+                        isEnabled = answersReady,
                         onAnswer = { answer ->
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             OfflineAudioPlayer.playEffect(context, soundResourceFor(GameSoundCue.AnswerSelect), volume = 0.36f)
@@ -5265,6 +5272,175 @@ private fun ListenButton(onClick: () -> Unit) {
                 color = Color.White,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Black
+            )
+        }
+    }
+}
+
+@Composable
+internal fun AnswerUnlockBanner(
+    state: GameState,
+    countedCount: Int
+) {
+    val progress = countingAdventureProgressFor(state, countedCount)
+    val transition = rememberInfiniteTransition(label = "answerUnlockBanner")
+    val shimmer by transition.animateFloat(
+        initialValue = 0.28f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "answerUnlockShimmer"
+    )
+    val keyTravel by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = spring(dampingRatio = 0.58f, stiffness = 180f),
+        label = "answerUnlockKeyTravel"
+    )
+    val title = if (state.selectedWrongAnswer != null) "Cufere redeschise!" else "Cufere deschise!"
+    val detail = if (state.operation == MathOperation.Subtraction) {
+        "Acum alegem câte comori rămân pe punte."
+    } else {
+        "Acum alegem totalul comorilor numărate."
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = StarGold.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, StarGold.copy(alpha = 0.44f))
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(76.dp)
+        ) {
+            val keyWidth = (maxWidth - 174.dp).coerceAtLeast(60.dp)
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        listOf(
+                            Color(0xFF173D4E).copy(alpha = 0.84f),
+                            StarGold.copy(alpha = 0.16f),
+                            Color(0xFF173D4E).copy(alpha = 0.9f)
+                        )
+                    ),
+                    size = size,
+                    cornerRadius = CornerRadius(20.dp.toPx(), 20.dp.toPx())
+                )
+                val y = size.height * 0.82f
+                drawLine(
+                    color = Color.White.copy(alpha = 0.14f),
+                    start = Offset(size.width * 0.12f, y),
+                    end = Offset(size.width * 0.86f, y),
+                    strokeWidth = 8f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = StarGold.copy(alpha = 0.44f + shimmer * 0.28f),
+                    start = Offset(size.width * 0.12f, y),
+                    end = Offset(size.width * (0.12f + 0.74f * keyTravel), y),
+                    strokeWidth = 4f,
+                    cap = StrokeCap.Round
+                )
+                listOf(
+                    Offset(size.width * 0.19f, size.height * 0.25f),
+                    Offset(size.width * 0.54f, size.height * 0.19f),
+                    Offset(size.width * 0.8f, size.height * 0.32f)
+                ).forEach { point ->
+                    val radius = 3.8f + shimmer * 2.4f
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.5f + shimmer * 0.3f),
+                        start = Offset(point.x - radius, point.y),
+                        end = Offset(point.x + radius, point.y),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = StarGold.copy(alpha = 0.5f + shimmer * 0.3f),
+                        start = Offset(point.x, point.y - radius),
+                        end = Offset(point.x, point.y + radius),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+            Image(
+                painter = painterResource(id = R.drawable.item_treasure_chest),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(62.dp)
+                    .padding(start = 6.dp)
+            )
+            Canvas(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = 58.dp + keyWidth * keyTravel, y = (-5).dp)
+                    .size(32.dp)
+            ) {
+                val keyColor = StarGold.copy(alpha = 0.92f)
+                drawCircle(
+                    color = keyColor,
+                    radius = size.minDimension * 0.22f,
+                    center = Offset(size.width * 0.28f, size.height * 0.5f),
+                    style = Stroke(width = size.width * 0.09f)
+                )
+                drawLine(
+                    color = keyColor,
+                    start = Offset(size.width * 0.44f, size.height * 0.5f),
+                    end = Offset(size.width * 0.88f, size.height * 0.5f),
+                    strokeWidth = size.width * 0.1f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = keyColor,
+                    start = Offset(size.width * 0.72f, size.height * 0.5f),
+                    end = Offset(size.width * 0.72f, size.height * 0.68f),
+                    strokeWidth = size.width * 0.08f,
+                    cap = StrokeCap.Round
+                )
+                drawLine(
+                    color = keyColor,
+                    start = Offset(size.width * 0.84f, size.height * 0.5f),
+                    end = Offset(size.width * 0.84f, size.height * 0.64f),
+                    strokeWidth = size.width * 0.07f,
+                    cap = StrokeCap.Round
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 86.dp, end = 166.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1
+                )
+                Text(
+                    text = detail,
+                    color = TextSandy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 12.sp,
+                    maxLines = 2
+                )
+            }
+            Image(
+                painter = painterResource(id = R.drawable.item_gold_coin),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 12.dp)
+                    .size(48.dp)
+                    .scale(0.96f + shimmer * 0.08f)
             )
         }
     }

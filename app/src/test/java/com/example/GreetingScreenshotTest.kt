@@ -258,6 +258,31 @@ class GreetingScreenshotTest {
   }
 
   @Test
+  fun answer_unlock_banner_screenshot() {
+    val state = GameState(
+      num1 = 2,
+      num2 = 2,
+      operation = MathOperation.Addition,
+      correctTotal = 3
+    )
+
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF062C43))
+            .padding(16.dp)
+        ) {
+          AnswerUnlockBanner(state = state, countedCount = 4)
+        }
+      }
+    }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/answer_unlock_banner.png")
+  }
+
+  @Test
   fun reward_harbor_progress_screenshot() {
     val state = GameState(
       lifetimeCoins = 10,

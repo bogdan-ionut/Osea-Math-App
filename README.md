@@ -97,6 +97,7 @@ Onboarding visual QA: `app/src/test/screenshots/onboarding.png`.
 Daily quests visual QA: `app/src/test/screenshots/captain_quest_board.png`.
 Reward burst visual QA: `app/src/test/screenshots/reward_burst.png`.
 Locked answer chests visual QA: `app/src/test/screenshots/locked_answer_chests.png`.
+Answer unlock banner visual QA: `app/src/test/screenshots/answer_unlock_banner.png`.
 Treasure celebration visual QA: `app/src/test/screenshots/celebration_treasure.png`.
 Generated item pack: captain hat, ship bell, rope coil, jeweled crown, message bottle, pearl shell, sextant, pirate flag.
 Offline sound pack: counting tap, move-to-chest, count complete, answer select, treasure unlock, correct/wrong reward, and victory cues.
