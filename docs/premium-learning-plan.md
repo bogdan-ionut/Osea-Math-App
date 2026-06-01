@@ -37,6 +37,7 @@
 - Ghid vizual de numărare: următorul obiect neatins este luminat și primește numărul pasului următor; doar acel obiect poate avansa numărătoarea.
 - Ghid vizual de scădere: runda afișează explicit faza curentă (`-1 Mută în cufăr`, `= Numără ce rămâne`, răspunsul final), ca minusul să fie o acțiune concretă, nu doar o formulă.
 - Progres fizic în rundă: în timp ce copilul atinge obiectele, o lopată avansează pe traseu spre cufăr și arată câte atingeri mai lipsesc.
+- Surprize pe traseul rundei: scena de numărare schimbă badge-ul vizual între start, indiciu, aproape și cufăr deblocat; la scădere badge-ul trece prin `-1` și `rămân`.
 - Continuitate între sesiuni: aplicația salvează local comorile totale, sesiunile finalizate și recordul de streak.
 - Continuitate între zile: streak-ul zilnic, ultimul raport și `Jurnalul de căpitan` rămân salvate pentru Parent Dash.
 - Recompense vizibile: `Colecția lui Oséa` deblochează obiecte ilustrate după acumularea de comori, nu simboluri abstracte.
@@ -133,6 +134,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA tehnic: tap-urile în afara obiectului luminat au test unitar și nu modifică numărătoarea.
 - QA tehnic: ghidul vizual de pași are teste unitare pentru adunare și pentru fazele scăderii concrete.
 - QA tehnic: banda de aventură din `ProblemStage` are test unitar pentru progres, etichete de adunare/scădere și starea finală.
+- QA tehnic: marker-ul de surpriză al rundei are teste unitare pentru fazele de adunare și scădere.
 - QA tehnic: `Port sigur` are teste unitare pentru range mic, declanșarea struggle detector-ului și queue-ul după reparare.
 - QA tehnic: colecția de recompense are teste unitare pentru praguri, următorul unlock, monede rămase și progres.
 - QA tehnic: micro-recompensa are test unitar pentru textul de streak, următoarea comoară și progres.

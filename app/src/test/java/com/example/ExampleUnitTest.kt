@@ -617,6 +617,30 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun countingQuestMarkerChangesAsTheRouteAdvances() {
+        val addition = GameState(num1 = 2, num2 = 2, operation = MathOperation.Addition, correctTotal = 1)
+
+        assertEquals("start", countingQuestMarkerFor(addition, countedCount = 0).label)
+        assertEquals("Ridică pânzele", countingQuestMarkerFor(addition, countedCount = 0).title)
+        assertEquals("indiciu", countingQuestMarkerFor(addition, countedCount = 1).label)
+        assertEquals("aproape", countingQuestMarkerFor(addition, countedCount = 3).label)
+        assertEquals("X pe nisip", countingQuestMarkerFor(addition, countedCount = 3).title)
+        assertEquals("gata", countingQuestMarkerFor(addition, countedCount = 4).label)
+        assertEquals("Cufăr deblocat", countingQuestMarkerFor(addition, countedCount = 8).title)
+    }
+
+    @Test
+    fun countingQuestMarkerMakesSubtractionPhasesVisible() {
+        val subtraction = GameState(num1 = 5, num2 = 2, operation = MathOperation.Subtraction)
+
+        assertEquals("-1", countingQuestMarkerFor(subtraction, countedCount = 0).label)
+        assertEquals("Mută prada", countingQuestMarkerFor(subtraction, countedCount = 1).title)
+        assertEquals("rămân", countingQuestMarkerFor(subtraction, countedCount = 2).label)
+        assertEquals("Puntea rămasă", countingQuestMarkerFor(subtraction, countedCount = 3).title)
+        assertEquals("gata", countingQuestMarkerFor(subtraction, countedCount = 5).label)
+    }
+
+    @Test
     fun adventureMapTracksActiveIslandAndSegmentProgress() {
         assertEquals(0, activeLearningIslandIndexFor(correctTotal = 0))
         assertEquals(2, coinsToActiveLearningIsland(correctTotal = 0))

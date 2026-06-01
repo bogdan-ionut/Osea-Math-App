@@ -179,6 +179,14 @@ data class RoundStepCue(
     val color: Color
 )
 
+data class CountingQuestMarker(
+    val label: String,
+    val title: String,
+    val detail: String,
+    val drawableRes: Int,
+    val color: Color
+)
+
 enum class CountingTrailRole {
     FirstGroup,
     SecondGroup,
@@ -714,6 +722,67 @@ fun countingAdventureLabelFor(state: GameState, countedCount: Int): String {
         state.operation == MathOperation.Subtraction && countedCount < state.num2 -> "Mutăm spre cufăr"
         state.operation == MathOperation.Subtraction -> "Numărăm ce rămâne"
         else -> "Săpăm spre comoară"
+    }
+}
+
+fun countingQuestMarkerFor(state: GameState, countedCount: Int): CountingQuestMarker {
+    val totalItems = visibleObjectCountFor(state)
+    val safeCounted = countedCount.coerceIn(0, totalItems)
+    val remaining = remainingTouchesFor(state, safeCounted)
+
+    return when {
+        remaining == 0 -> CountingQuestMarker(
+            label = "gata",
+            title = "Cufăr deblocat",
+            detail = "alege răspunsul sigur",
+            drawableRes = R.drawable.item_treasure_chest,
+            color = EmeraldGreen
+        )
+        state.selectedWrongAnswer != null -> CountingQuestMarker(
+            label = "reparăm",
+            title = "Harta reparată",
+            detail = "numărăm încă o dată",
+            drawableRes = R.drawable.item_rope_coil,
+            color = CoralBlue
+        )
+        state.operation == MathOperation.Subtraction && safeCounted < state.num2 -> CountingQuestMarker(
+            label = "-1",
+            title = "Mută prada",
+            detail = "în cufăr, pe rând",
+            drawableRes = R.drawable.item_treasure_chest,
+            color = RubyRed
+        )
+        state.operation == MathOperation.Subtraction -> CountingQuestMarker(
+            label = "rămân",
+            title = "Puntea rămasă",
+            detail = "numără ce vezi",
+            drawableRes = state.item1.drawableRes ?: R.drawable.item_anchor,
+            color = EmeraldGreen
+        )
+        safeCounted == 0 -> CountingQuestMarker(
+            label = "start",
+            title = "Ridică pânzele",
+            detail = "prima comoară luminează",
+            drawableRes = R.drawable.item_ship,
+            color = CoralBlue
+        )
+        safeCounted * 2 < totalItems -> {
+            val surprise = voyageSurpriseFor(state.correctTotal + safeCounted)
+            CountingQuestMarker(
+                label = "indiciu",
+                title = surprise.title,
+                detail = "apare pe traseu",
+                drawableRes = surprise.drawableRes,
+                color = surprise.color
+            )
+        }
+        else -> CountingQuestMarker(
+            label = "aproape",
+            title = "X pe nisip",
+            detail = "cufărul e aproape",
+            drawableRes = R.drawable.item_treasure_map,
+            color = StarGold
+        )
     }
 }
 
@@ -4222,7 +4291,7 @@ private fun RoundAdventureScene(
     } else {
         state.item2.drawableRes ?: R.drawable.item_treasure_chest
     }
-    val surprise = voyageSurpriseFor(state.correctTotal + countedCount)
+    val questMarker = countingQuestMarkerFor(state, countedCount)
 
     BoxWithConstraints(
         modifier = Modifier
@@ -4415,10 +4484,10 @@ private fun RoundAdventureScene(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 8.dp)
-                .width(122.dp),
+                .width(132.dp),
             shape = RoundedCornerShape(16.dp),
             color = Color.Black.copy(alpha = 0.22f),
-            border = BorderStroke(1.dp, surprise.color.copy(alpha = 0.48f))
+            border = BorderStroke(1.dp, questMarker.color.copy(alpha = 0.56f))
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
@@ -4426,26 +4495,34 @@ private fun RoundAdventureScene(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Image(
-                    painter = painterResource(id = surprise.drawableRes),
+                    painter = painterResource(id = questMarker.drawableRes),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(30.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "pe drum",
-                        color = TextSandy,
+                        text = questMarker.label,
+                        color = questMarker.color,
                         fontSize = 7.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
                         maxLines = 1
                     )
                     Text(
-                        text = surprise.title,
+                        text = questMarker.title,
                         color = Color.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
                         lineHeight = 10.sp,
                         maxLines = 2
+                    )
+                    Text(
+                        text = questMarker.detail,
+                        color = TextSandy,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 8.sp,
+                        maxLines = 1
                     )
                 }
             }
