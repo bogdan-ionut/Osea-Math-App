@@ -5335,11 +5335,12 @@ private fun AnswerButton(
 ) {
     val isWrong = wrongAnswer == number
     val isCorrect = isCorrecting && number == correctAnswer
+    val isLocked = !isEnabled && !isCorrect && !isWrong
     val bgColor by animateColorAsState(
         targetValue = when {
             isCorrect -> EmeraldGreen
             isWrong -> RubyRed
-            !isEnabled -> Color(0xFF263D47)
+            isLocked -> Color(0xFF1D3340)
             else -> Color(0xFF173D4E)
         },
         label = "answerColor"
@@ -5353,7 +5354,7 @@ private fun AnswerButton(
         isCorrect -> Color.White
         isWrong -> RubyRed.copy(alpha = 0.85f)
         isEnabled -> StarGold.copy(alpha = 0.48f)
-        else -> Color.White.copy(alpha = 0.1f)
+        else -> CoralBlue.copy(alpha = 0.28f)
     }
     val numberColor = when {
         isCorrect || isWrong || isEnabled -> Color.White
@@ -5401,6 +5402,35 @@ private fun AnswerButton(
                     strokeWidth = 2f,
                     cap = StrokeCap.Round
                 )
+                if (isLocked) {
+                    val chainColor = CoralBlue.copy(alpha = 0.24f)
+                    drawLine(
+                        color = chainColor,
+                        start = Offset(size.width * 0.16f, size.height * 0.22f),
+                        end = Offset(size.width * 0.84f, size.height * 0.78f),
+                        strokeWidth = 5f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = chainColor,
+                        start = Offset(size.width * 0.84f, size.height * 0.22f),
+                        end = Offset(size.width * 0.16f, size.height * 0.78f),
+                        strokeWidth = 5f,
+                        cap = StrokeCap.Round
+                    )
+                    listOf(
+                        Offset(size.width * 0.32f, size.height * 0.36f),
+                        Offset(size.width * 0.5f, size.height * 0.5f),
+                        Offset(size.width * 0.68f, size.height * 0.64f)
+                    ).forEach { point ->
+                        drawCircle(
+                            color = Color.White.copy(alpha = 0.2f),
+                            radius = 5f,
+                            center = point,
+                            style = Stroke(width = 2.2f)
+                        )
+                    }
+                }
                 if (isCorrect) {
                     val sparkle = StarGold.copy(alpha = 0.86f)
                     listOf(
@@ -5425,32 +5455,61 @@ private fun AnswerButton(
                     }
                 }
             }
-            Image(
-                painter = painterResource(id = R.drawable.item_treasure_chest),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(58.dp)
-                    .padding(end = 4.dp, bottom = 2.dp)
-                    .alpha(if (isEnabled || isCorrect || isWrong) 0.34f else 0.13f)
-            )
-            Image(
-                painter = painterResource(id = R.drawable.item_gold_coin),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .size(30.dp)
-                    .padding(start = 6.dp, top = 6.dp)
-                    .alpha(if (isEnabled) 0.88f else 0.24f)
-            )
-            Text(
-                text = number.toString(),
-                color = numberColor,
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Black
-            )
+            if (isLocked) {
+                Image(
+                    painter = painterResource(id = R.drawable.item_treasure_chest),
+                    contentDescription = "Cufăr de răspuns blocat",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(62.dp)
+                        .alpha(0.72f)
+                )
+                Text(
+                    text = "?",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    text = "cufăr închis",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    color = TextSandy.copy(alpha = 0.72f),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.item_treasure_chest),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(58.dp)
+                        .padding(end = 4.dp, bottom = 2.dp)
+                        .alpha(if (isEnabled || isCorrect || isWrong) 0.34f else 0.13f)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.item_gold_coin),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .size(30.dp)
+                        .padding(start = 6.dp, top = 6.dp)
+                        .alpha(if (isEnabled) 0.88f else 0.24f)
+                )
+                Text(
+                    text = number.toString(),
+                    color = numberColor,
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.Black
+                )
+            }
             if (isWrong) {
                 Text(
                     text = "x",
