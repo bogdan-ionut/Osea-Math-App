@@ -28,6 +28,7 @@
 - Skill gaps vizibile: Parent Dash separă acuratețea pentru `Adunare` și `Scădere`, cu stare de calibrare până există suficiente încercări.
 - Guess Guard pentru părinte: Parent Dash include un scor de eficiență inspirat de semnalul de quality control/waste din PDF, dar formulat blând pentru vârsta lui Oséa.
 - Sprijin pentru vârstă mică: fiecare problemă este concretă, atinsă cu degetul și numărabilă înainte de alegerea răspunsului numeric.
+- Obiecte tactile premium: problemele mici folosesc celule mai mari, bază luminoasă și sparkle pe următorul obiect, ca ținta de atins să fie evidentă pentru un copil de 4 ani.
 - Rezultat concret după numărare: aplicația afișează `Total sigur` sau `Rămân pe punte` doar după ce toate obiectele au fost atinse.
 - Scădere concretă: copilul pornește cu obiectele de pe punte, mută primele comori în cufăr cu marcaj `-1`, apoi numără numai ce rămâne pe punte.
 - Reducerea ghicitului: răspunsurile se activează doar după ce toate obiectele au fost atinse și numărate; după greșeală, numărarea se resetează și copilul repară concret înainte de o nouă alegere.
@@ -103,6 +104,7 @@ Prima versiune upgradată păstrează fantezia marină, dar mută experiența de
 - QA vizual Pixel 8: onboarding-ul are captură Roborazzi dedicată pentru presetul recomandat de start.
 - QA vizual Pixel 8: `Misiuni de azi` are captură Roborazzi dedicată pentru cele trei obiective vizuale ale sesiunii.
 - QA vizual Pixel 8: obiectele numărabile au fost înlocuite cu ilustrații locale pentru un look mai consistent și mai premium.
+- QA vizual Pixel 8: obiectele numărabile au celule mai mari în problemele mici și efecte de focus pe obiectul următor.
 - QA vizual Pixel 8: noile obiecte generate au captură dedicată `new_treasure_items.png`, ca sticla cu mesaj și scoica cu perle să fie verificate în contextul real al problemei.
 - QA vizual Pixel 8: colecția de recompense a fost mutată de la simboluri text la obiecte PNG generate, pentru consistență cu tema de pirați și comori.
 - QA vizual Pixel 8: ecranul `Pauză de punte` are captură Roborazzi dedicată pentru time-box.

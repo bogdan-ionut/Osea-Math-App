@@ -694,6 +694,21 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun itemGridKeepsSmallProblemsLargeAndBiggerProblemsBounded() {
+        assertEquals(2, itemGridColumnsFor(count = 4))
+        assertEquals(66, itemCellSizeDpFor(count = 4))
+        assertEquals(3, itemGridColumnsFor(count = 8))
+        assertEquals(45, itemCellSizeDpFor(count = 8))
+        assertEquals(4, itemGridColumnsFor(count = 10))
+        assertEquals(40, itemCellSizeDpFor(count = 10))
+
+        assertEquals(2, itemGridColumnsFor(count = 4, wideLayout = true))
+        assertEquals(76, itemCellSizeDpFor(count = 4, wideLayout = true))
+        assertEquals(3, itemGridColumnsFor(count = 8, wideLayout = true))
+        assertEquals(60, itemCellSizeDpFor(count = 8, wideLayout = true))
+    }
+
+    @Test
     fun guidedSubtractionStaysOnTheDeckInsteadOfCountingASecondGroup() {
         val state = GameState(num1 = 4, num2 = 2, operation = MathOperation.Subtraction)
 

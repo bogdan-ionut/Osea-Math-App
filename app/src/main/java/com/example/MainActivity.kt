@@ -685,6 +685,28 @@ fun countingAdventureProgressFor(state: GameState, countedCount: Int): Float {
     return (countedCount.toFloat() / totalItems.toFloat()).coerceIn(0f, 1f)
 }
 
+fun itemGridColumnsFor(count: Int, wideLayout: Boolean = false): Int {
+    return when {
+        wideLayout && count <= 4 -> 2
+        wideLayout && count <= 9 -> 3
+        wideLayout -> 4
+        count <= 4 -> 2
+        count <= 8 -> 3
+        else -> 4
+    }
+}
+
+fun itemCellSizeDpFor(count: Int, wideLayout: Boolean = false): Int {
+    return when {
+        wideLayout && count <= 4 -> 76
+        wideLayout && count <= 8 -> 60
+        wideLayout -> 50
+        count <= 4 -> 66
+        count <= 8 -> 45
+        else -> 40
+    }
+}
+
 fun countingAdventureLabelFor(state: GameState, countedCount: Int): String {
     val remaining = remainingTouchesFor(state, countedCount)
     return when {
@@ -4760,22 +4782,8 @@ private fun InteractiveItemGrid(
     subtractionTakeAwayCount: Int = 0,
     wideLayout: Boolean = false
 ) {
-    val columns = when {
-        wideLayout && count <= 4 -> 2
-        wideLayout && count <= 9 -> 3
-        wideLayout -> 4
-        count <= 4 -> 2
-        count <= 8 -> 3
-        else -> 4
-    }
-    val itemSize = when {
-        wideLayout && count <= 4 -> 72.dp
-        wideLayout && count <= 8 -> 58.dp
-        wideLayout -> 48.dp
-        count <= 4 -> 62.dp
-        count <= 8 -> 44.dp
-        else -> 38.dp
-    }
+    val columns = itemGridColumnsFor(count = count, wideLayout = wideLayout)
+    val itemSize = itemCellSizeDpFor(count = count, wideLayout = wideLayout).dp
     val rows = (count + columns - 1) / columns
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -4807,7 +4815,7 @@ private fun InteractiveItemGrid(
                         isTakenAway = isTakenAway,
                         isGuidedTakeAway = isGuidedTakeAway,
                         size = itemSize,
-                        bubbleSize = if (itemSize > 48.dp) 22.dp else 18.dp,
+                        bubbleSize = if (itemSize > 48.dp) 24.dp else 19.dp,
                         onClick = { onItemTapped(itemId) }
                     )
                 }
@@ -4888,6 +4896,57 @@ private fun PirateItemView(
                     .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(15.dp))
             )
         }
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val canvasSize = this.size
+            val minDimension = minOf(canvasSize.width, canvasSize.height)
+            val baseY = canvasSize.height * 0.78f
+            drawOval(
+                color = Color.Black.copy(alpha = if (isTakenAway) 0.08f else 0.18f),
+                topLeft = Offset(canvasSize.width * 0.18f, baseY - canvasSize.height * 0.06f),
+                size = Size(canvasSize.width * 0.64f, canvasSize.height * 0.16f)
+            )
+            drawOval(
+                color = accentColor.copy(alpha = if (isActiveGuide) 0.26f else 0.12f),
+                topLeft = Offset(canvasSize.width * 0.22f, baseY - canvasSize.height * 0.08f),
+                size = Size(canvasSize.width * 0.56f, canvasSize.height * 0.14f)
+            )
+            if (isActiveGuide) {
+                drawCircle(
+                    color = StarGold.copy(alpha = 0.18f + guideAlpha * 0.16f),
+                    radius = minDimension * 0.42f,
+                    center = Offset(canvasSize.width * 0.5f, canvasSize.height * 0.48f),
+                    style = Stroke(width = minDimension * 0.045f)
+                )
+                listOf(
+                    Offset(canvasSize.width * 0.22f, canvasSize.height * 0.22f),
+                    Offset(canvasSize.width * 0.78f, canvasSize.height * 0.28f),
+                    Offset(canvasSize.width * 0.24f, canvasSize.height * 0.72f)
+                ).forEach { point ->
+                    val spark = minDimension * (0.035f + guideAlpha * 0.035f)
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.58f),
+                        start = Offset(point.x - spark, point.y),
+                        end = Offset(point.x + spark, point.y),
+                        strokeWidth = minDimension * 0.025f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.58f),
+                        start = Offset(point.x, point.y - spark),
+                        end = Offset(point.x, point.y + spark),
+                        strokeWidth = minDimension * 0.025f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+            if (countedNumber != null) {
+                drawCircle(
+                    color = StarGold.copy(alpha = 0.16f),
+                    radius = minDimension * 0.38f,
+                    center = Offset(canvasSize.width * 0.5f, canvasSize.height * 0.5f)
+                )
+            }
+        }
         if (item.drawableRes != null) {
             Image(
                 painter = painterResource(id = item.drawableRes),
@@ -4895,7 +4954,7 @@ private fun PirateItemView(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(if (isActiveGuide) 4.dp else 6.dp)
+                    .padding(if (isActiveGuide) 2.dp else 4.dp)
                     .alpha(if (isTakenAway) 0.42f else 1f)
             )
         } else {
@@ -4904,7 +4963,7 @@ private fun PirateItemView(
                 accentColor = accentColor,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(8.dp)
+                    .padding(if (isActiveGuide) 5.dp else 7.dp)
                     .alpha(if (isTakenAway) 0.42f else 1f)
             )
         }
